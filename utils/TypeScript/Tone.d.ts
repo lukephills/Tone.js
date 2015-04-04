@@ -366,7 +366,7 @@ declare module Tone {
     interface Filter extends Tone {
         detune: Tone.Signal;
         frequency: Tone.Signal;
-        gain: AudioParam;
+        gain: Tone.Signal;
         Q: Tone.Signal;
         rolloff: number;
         type: string;

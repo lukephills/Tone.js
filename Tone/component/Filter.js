@@ -45,7 +45,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal"], function(Tone){
 		 *  the gain of the filter, only used in certain filter types
 		 *  @type {AudioParam}
 		 */
-		this.gain = new Tone.Signal(options.gain, Tone.Signal.Units.Decibels);
+		this.gain = new Tone.Signal(options.gain, Tone.Signal.Units.Number);
 
 		/**
 		 *  the Q or Quality of the filter
