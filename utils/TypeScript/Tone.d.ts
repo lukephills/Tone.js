@@ -133,6 +133,7 @@ declare module Tone {
 
     interface AutoWah extends Tone.Effect {
         baseFrequency: Tone.Frequency;
+        follower: Tone.Follower;
         gain: Tone.Signal;
         octaves: number;
         Q: Tone.Signal;
