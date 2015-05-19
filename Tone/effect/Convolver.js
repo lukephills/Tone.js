@@ -13,7 +13,8 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/effect/Effect"], function(To
 	 */
 	Tone.Convolver = function(url){
 
-		Tone.Effect.apply(this, arguments);
+		var options = this.optionsObject(arguments, ["url"], Tone.Convolver.defaults);
+		Tone.Effect.call(this, options);
 
 	  	/**
 		 *  convolver node
