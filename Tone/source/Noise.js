@@ -93,6 +93,26 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	});
 
 	/**
+	 * The playback speed. 1 is normal speed.
+	 * Added playback speed option for noises
+	 *
+	 * @memberOf Tone.Noise#
+	 * @type {number}
+	 * @name playbackRate
+	 */
+	Object.defineProperty(Tone.Noise.prototype, "playbackRate", {
+		get : function(){
+			return this._playbackRate;
+		},
+		set : function(rate){
+			this._playbackRate = rate;
+			if (this._source) {
+				this._source.playbackRate.value = rate;
+			}
+		}
+	});
+
+	/**
 	 *  internal start method
 	 *
 	 *  @param {Tone.Time} time
