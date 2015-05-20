@@ -112,6 +112,22 @@ declare module Tone {
         dispose(): Tone.AudioToGain;
     }
 
+    var AutoFilter: {
+        new(frequency?: Tone.Time, depth?: number): Tone.AutoFilter; //TODO: Number || Object
+    };
+
+    interface AutoFilter extends Tone.Effect {
+        depth: Tone.Signal;
+        frequency: Tone.Signal;
+        max: number;
+        min: number;
+        type: string;
+        start(time?: Tone.Time): Tone.AutoFilter;
+        stop(time?: Tone.Time): Tone.AutoFilter;
+        sync(delay?: Tone.Time): Tone.AutoFilter;
+        unsync(): Tone.AutoFilter;
+    }
+
     var AutoPanner: {
         new(frequency?: any): Tone.AutoPanner; //TODO: Number || Object
     };
@@ -244,6 +260,17 @@ declare module Tone {
         dispose(): Tone.Distortion;
     }
 
+    var DrumSynth: {
+        new(options?: any): Tone.DrumSynth;
+    }
+
+    interface DrumSynth extends Tone.Instrument {
+        envelope: Tone.Envelope;
+        octaves: number;
+        oscillator: Tone.Oscillator;
+        pitchDecay: Tone.Time;
+    }
+
     var DuoSynth: {
         new(options?: any): Tone.DuoSynth;
     };
@@ -275,6 +302,7 @@ declare module Tone {
 
     interface Envelope extends Tone {
         attack: Tone.Time;
+        attackCurve: string;
         decay: Tone.Time;
         release: Tone.Time;
         sustain: number;
@@ -284,17 +312,17 @@ declare module Tone {
         triggerRelease(time?: Tone.Time): Tone.Envelope;
     }
 
-    var EQ: {
-        new(lowLevel?: any, midLevel?: number, highLevel?: number): Tone.EQ; //TODO: Change 'any' to 'number | Object'
+    var EQ3: {
+        new(lowLevel?: any, midLevel?: number, highLevel?: number): Tone.EQ3; //TODO: Change 'any' to 'number | Object'
     };
 
-    interface EQ extends Tone {
+    interface EQ3 extends Tone {
         highFrequency: Tone.Signal;
         high: GainNode;
         lowFrequency: Tone.Signal;
         low: GainNode;
         mid: GainNode;
-        dispose(): Tone.EQ;
+        dispose(): Tone.EQ3;
     }
 
     var Equal: {
@@ -562,6 +590,15 @@ declare module Tone {
         dispose(): Tone.Microphone;
     }
 
+    var MidSideCompressor : {
+        new(): Tone.MidSideCompressor;
+    };
+
+    interface MidSideCompressor extends Tone.MidSideEffect {
+        mid: Tone.Compressor;
+        side: Tone.Compressor;
+    }
+
     var MidSideEffect : {
         new(): Tone.MidSideEffect;
     };
@@ -572,6 +609,26 @@ declare module Tone {
         sideReturn: GainNode;
         sideSend: Tone.Expr;
         dispose(): Tone.MidSideEffect;
+    }
+
+    var MidSideMerge : {
+        new(): Tone.MidSideMerge;
+    };
+
+    interface MidSideMerge extends Tone.StereoEffect {
+        mid: GainNode;
+        side: GainNode;
+        dispose(): Tone.MidSideMerge;
+    }
+
+    var MidSideSplit : {
+        new(): Tone.MidSideSplit;
+    };
+
+    interface MidSideSplit extends Tone.StereoEffect {
+        mid: Tone.Expr;
+        side: Tone.Expr;
+        dispose(): Tone.MidSideSplit;
     }
 
     var Min: {
@@ -808,6 +865,7 @@ declare module Tone {
     };
 
     interface Player extends Tone.Source {
+        autostart: boolean;
         buffer: AudioBuffer;
         duration: number;
         loop: boolean;
@@ -815,6 +873,7 @@ declare module Tone {
         loopStart: Tone.Time;
         playbackRate: number;
         retrigger: boolean;
+        reverse: boolean;
         dispose(): Tone.Player;
         load(url:string, callback?:(e: any)=>any):  Tone.Player;
         setLoopPoints(loopStart:Tone.Time, loopEnd:Tone.Time): Tone.Player;
@@ -1099,6 +1158,14 @@ declare module Tone {
 
     interface TransportState {}
 
+    var Volume: {
+        new(volume: number): Tone.Volume;
+    };
+
+    interface Volume extends Tone {
+        volume: Tone.Signal;
+    }
+
     var WaveShaper: {
         new(mapping: any, bufferLen?: number): Tone.WaveShaper; //TODO: change 'any' to 'Function | Array | number'
     };
@@ -1108,23 +1175,3 @@ declare module Tone {
         oversample: string;
     }
 }
-
-
-/***
- * NOTES
- * LFO.phase should be type number
- OmniOscillator frequency type should be Tone.Frequency
- PWMOscillator frequency type should be Tone.Frequency
-
- WaveShaper oversample @name is wrong
- AudioGain returns this (Tone.AudioGain)
- LowpassCombFilter.setDelayTimeAtTime() should return this
- Master has two mute methods. One of them should be unmute.
- Normalize is missing constructor in docs: new(min?: number, max?: number)
- OR is missing constructor in docs: new(inputCount?:number)
- PanVol is missing constructor in docs: new(pan: number, volume: number)
- Phaser.baseFrequency should be type number not string. (Or is it meant to be Tone.Frequency?)
- AmplitudeEnvelope should have its own dispose.
- Convolution Reverb not working
- *
- */

@@ -30,13 +30,6 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		 */
 		this._buffer = null;
 
-		/**
-		 *  the playback rate for pitching the noise
-		 *  @private
-		 *  @type {number}
-		 */
-		this._playbackRate = 1;
-
 		this.type = options.type;
 	};
 
@@ -58,6 +51,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	 * @memberOf Tone.Noise#
 	 * @type {string}
 	 * @name type
+	 * @options ["white", "brown", "pink"]
 	 * @example
 	 * noise.type = "white";
 	 */
@@ -99,28 +93,6 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	});
 
 	/**
-	 * The playback speed. 1 is normal speed.
-	 * Note that this is not a Tone.Signal because of a bug in Blink.
-	 * Please star this issue if this an important thing to you:
-	 * https://code.google.com/p/chromium/issues/detail?id=311284
-	 *
-	 * @memberOf Tone.Noise#
-	 * @type {number}
-	 * @name playbackRate
-	 */
-	Object.defineProperty(Tone.Noise.prototype, "playbackRate", {
-		get : function(){
-			return this._playbackRate;
-		},
-		set : function(rate){
-			this._playbackRate = rate;
-			if (this._source) {
-				this._source.playbackRate.value = rate;
-			}
-		}
-	});
-
-	/**
 	 *  internal start method
 	 *
 	 *  @param {Tone.Time} time
@@ -130,7 +102,6 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		this._source = this.context.createBufferSource();
 		this._source.buffer = this._buffer;
 		this._source.loop = true;
-		this._source.playbackRate.value = this._playbackRate;
 		this.connectSeries(this._source, this.output);
 		this._source.start(this.toSeconds(time));
 		this._source.onended = this.onended;
