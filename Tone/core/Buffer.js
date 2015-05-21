@@ -3,15 +3,15 @@ define(["Tone/core/Tone"], function(Tone){
 	"use strict";
 
 	/**
-	 *  @class  Buffer loading and storage. Tone.Buffer is used internally by all 
+	 *  @class  Buffer loading and storage. Tone.Buffer is used internally by all
 	 *          classes that make requests for audio files such as {@link Tone.Player},
 	 *          {@link Tone.Sampler} and {@link Tone.Convolver} .
-	 *          <br><br>Aside from load callbacks from individual buffers, Tone.Buffer 
-	 *  		provides static methods which keep track of the loading progress 
+	 *          <br><br>Aside from load callbacks from individual buffers, Tone.Buffer
+	 *  		provides static methods which keep track of the loading progress
 	 *  		of all of the buffers. These methods are `onload`, `onprogress`,
-	 *  		and `onerror`. 
+	 *  		and `onerror`.
 	 *
-	 *  @constructor 
+	 *  @constructor
 	 *  @param {AudioBuffer|string} url the url to load, or the audio buffer to set
 	 */
 	Tone.Buffer = function(){
@@ -26,7 +26,14 @@ define(["Tone/core/Tone"], function(Tone){
 		this._buffer = null;
 
 		/**
-		 *  the url of the buffer. `undefined` if it was 
+		 *  indicates if the buffer should be reversed or not
+		 *  @type {boolean}
+		 *  @private
+		 */
+		this._reversed = options.reverse;
+
+		/**
+		 *  the url of the buffer. `undefined` if it was
 		 *  constructed with a buffer
 		 *  @type {string}
 		 *  @readOnly
@@ -67,6 +74,7 @@ define(["Tone/core/Tone"], function(Tone){
 	Tone.Buffer.defaults = {
 		"url" : undefined,
 		"onload" : function(){},
+		"reverse" : false
 	};
 
 	/**
@@ -93,7 +101,7 @@ define(["Tone/core/Tone"], function(Tone){
 
 	/**
 	 *  @param {string} url the url to load
-	 *  @param {function=} callback the callback to invoke on load. 
+	 *  @param {function=} callback the callback to invoke on load.
 	 *                              don't need to set if `onload` is
 	 *                              already set.
 	 *  @returns {Tone.Buffer} `this`
@@ -134,10 +142,42 @@ define(["Tone/core/Tone"], function(Tone){
 		},
 	});
 
+	/**
+	 *  reverse the buffer
+	 *  @private
+	 *  @return {Tone.Buffer} `this`
+	 */
+	Tone.Buffer.prototype._reverse = function(){
+		if (this.loaded){
+			for (var i = 0; i < this._buffer.numberOfChannels; i++){
+				Array.prototype.reverse.call(this._buffer.getChannelData(i));
+			}
+		}
+		return this;
+	};
+
+	/**
+	 * if the buffer is reversed or not
+	 * @memberOf Tone.Buffer#
+	 * @type {boolean}
+	 * @name reverse
+	 */
+	Object.defineProperty(Tone.Buffer.prototype, "reverse", {
+		get : function(){
+			return this._reversed;
+		},
+		set : function(rev){
+			if (this._reversed !== rev){
+				this._reversed = rev;
+				this._reverse();
+			}
+		},
+	});
+
 	///////////////////////////////////////////////////////////////////////////
 	// STATIC METHODS
 	///////////////////////////////////////////////////////////////////////////
-	 
+
 	/**
 	 *  the static queue for all of the xhr requests
 	 *  @type {Array}
@@ -165,7 +205,7 @@ define(["Tone/core/Tone"], function(Tone){
 	 *  @type {number}
 	 */
 	Tone.Buffer.MAX_SIMULTANEOUS_DOWNLOADS = 6;
-	
+
 	/**
 	 *  Adds a file to be loaded to the loading queue
 	 *  @param   {string}   url      the url to load
@@ -223,6 +263,9 @@ define(["Tone/core/Tone"], function(Tone){
 					var index = Tone.Buffer._currentDownloads.indexOf(next);
 					Tone.Buffer._currentDownloads.splice(index, 1);
 					next.Buffer.set(buffer);
+					if (next.Buffer._reversed){
+						next.Buffer._reverse();
+					}
 					next.Buffer.onload(next.Buffer);
 					Tone.Buffer._onprogress();
 					Tone.Buffer._next();
@@ -232,7 +275,7 @@ define(["Tone/core/Tone"], function(Tone){
 					Tone.Buffer._onprogress();
 				};
 				next.xhr.onerror = Tone.Buffer.onerror;
-			} 
+			}
 		} else if (Tone.Buffer._currentDownloads.length === 0){
 			Tone.Buffer.onload();
 			//reset the downloads
@@ -302,7 +345,7 @@ define(["Tone/core/Tone"], function(Tone){
 	Tone.Buffer.onload = function(){};
 
 	/**
-	 *  Callback function is invoked with the progress of all of the loads in the queue. 
+	 *  Callback function is invoked with the progress of all of the loads in the queue.
 	 *  The value passed to the callback is between 0-1.
 	 *  @static
 	 *  @type {function}
@@ -315,7 +358,7 @@ define(["Tone/core/Tone"], function(Tone){
 
 	/**
 	 *  Callback if one of the buffers in the queue encounters an error. The error
-	 *  is passed in as the argument. 
+	 *  is passed in as the argument.
 	 *  @static
 	 *  @type {function}
 	 *  @example

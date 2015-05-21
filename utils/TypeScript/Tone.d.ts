@@ -808,6 +808,7 @@ declare module Tone {
     };
 
     interface Player extends Tone.Source {
+        autostart: boolean;
         buffer: AudioBuffer;
         duration: number;
         loop: boolean;
@@ -815,6 +816,7 @@ declare module Tone {
         loopStart: Tone.Time;
         playbackRate: number;
         retrigger: boolean;
+        reverse: boolean;
         dispose(): Tone.Player;
         load(url:string, callback?:(e: any)=>any):  Tone.Player;
         setLoopPoints(loopStart:Tone.Time, loopEnd:Tone.Time): Tone.Player;
