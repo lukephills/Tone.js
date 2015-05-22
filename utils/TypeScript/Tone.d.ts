@@ -817,6 +817,7 @@ declare module Tone {
         playbackRate: number;
         retrigger: boolean;
         reverse: boolean;
+        startPosition: Tone.Time;
         dispose(): Tone.Player;
         load(url:string, callback?:(e: any)=>any):  Tone.Player;
         setLoopPoints(loopStart:Tone.Time, loopEnd:Tone.Time): Tone.Player;

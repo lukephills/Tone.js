@@ -46,6 +46,13 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		});
 
 		/**
+		 *  The position the sample will start playback from
+		 *  @type {Tone.Time}
+		 *  @private
+		 */
+		this._startPosition = options.startPosition;
+
+		/**
 		 *  if the buffer should loop once it's over
 		 *  @type {boolean}
 		 *  @private
@@ -98,6 +105,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		"loopEnd" : 0,
 		"retrigger" : false,
 		"reverse" : false,
+		"startPosition" : 0,
 	};
 
 	/**
@@ -143,14 +151,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 */
 	Tone.Player.prototype._start = function(startTime, offset, duration){
 		if (this._buffer.loaded){
-			//if it's a loop the default offset is the loopstart point
-			if (this._loop){
-				offset = this.defaultArg(offset, this._loopStart);
-			} else {
-				//otherwise the default offset is 0
-				offset = this.defaultArg(offset, 0);
-			}
-			offset = this.toSeconds(offset);
+			offset = this.defaultArg(this._startPosition, 0);
 			duration = this.defaultArg(duration, this._buffer.duration - offset);
 			//the values in seconds
 			startTime = this.toSeconds(startTime);
@@ -210,6 +211,21 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		this.loopEnd = loopEnd;
 		return this;
 	};
+
+	/**
+	 * Start the sample from here.
+	 * @memberOf Tone.Player#
+	 * @type {Tone.Time}
+	 * @name startPosition
+	 */
+	Object.defineProperty(Tone.Player.prototype, "startPosition", {
+		get : function(){
+			return this._startPosition;
+		},
+		set : function(startPosition){
+			this._startPosition = this.toSeconds(startPosition);
+		}
+	});
 
 	/**
 	 * If `loop` is true, the loop will start at this position.
