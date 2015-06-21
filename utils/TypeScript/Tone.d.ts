@@ -1,5 +1,3 @@
-/// <reference path="WebAudio.d.ts" />
-
 // Type definitions for TONE.JS
 // Project: https://github.com/TONEnoTONE/Tone.js
 // Definitions by: Luke Phillips <https://github.com/lukephills>
