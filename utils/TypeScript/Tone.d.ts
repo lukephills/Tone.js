@@ -819,6 +819,7 @@ declare module Tone {
         dispose(): Tone.Player;
         load(url:string, callback?:(e: any)=>any):  Tone.Player;
         setLoopPoints(loopStart:Tone.Time, loopEnd:Tone.Time): Tone.Player;
+        start(startTime?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time): Tone.Player;
     }
 
     var PluckSynth : {
