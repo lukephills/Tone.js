@@ -151,7 +151,14 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 */
 	Tone.Player.prototype._start = function(startTime, offset, duration){
 		if (this._buffer.loaded){
-			offset = this.defaultArg(this._startPosition, 0);
+			//if it's a loop the default offset is the loopstart point
+			if (this._loop){
+				offset = this.defaultArg(offset, this._loopStart);
+			} else {
+				//otherwise the default offset is 0
+				offset = this.defaultArg(offset, 0);
+			}
+			offset = this.toSeconds(offset);
 			duration = this.defaultArg(duration, this._buffer.duration - offset);
 			//the values in seconds
 			startTime = this.toSeconds(startTime);
