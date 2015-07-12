@@ -3,16 +3,18 @@ define(["Tone/core/Tone", "Tone/signal/GreaterThanZero"], function(Tone){
 	"use strict";
 
 	/**
-	 *  @class OR the inputs together. True if at least one of the inputs is true. 
+	 *  @class [OR](https://en.wikipedia.org/wiki/OR_gate)
+	 *         the inputs together. True if at least one of the inputs is true. 
 	 *
 	 *  @extends {Tone.SignalBase}
 	 *  @constructor
+	 *  @param {number} [inputCount=2] the input count
 	 *  @example
-	 *  var or = new Tone.OR(2);
-	 *  var sigA = new Tone.Signal(0)connect(or, 0, 0);
-	 *  var sigB = new Tone.Signal(1)connect(or, 0, 1);
-	 *  //output of or is 1 because at least
-	 *  //one of the inputs is equal to 1. 
+	 * var or = new Tone.OR(2);
+	 * var sigA = new Tone.Signal(0)connect(or, 0, 0);
+	 * var sigB = new Tone.Signal(1)connect(or, 0, 1);
+	 * //output of or is 1 because at least
+	 * //one of the inputs is equal to 1. 
 	 */
 	Tone.OR = function(inputCount){
 
@@ -30,14 +32,7 @@ define(["Tone/core/Tone", "Tone/signal/GreaterThanZero"], function(Tone){
 		 *  @type {Tone.Equal}
 		 *  @private
 		 */
-		this._gtz = new Tone.GreaterThanZero();
-
-		/**
-		 *  the output
-		 *  @type {Tone.Equal}
-		 *  @private
-		 */
-		this.output = this._gtz;
+		this._gtz = this.output = new Tone.GreaterThanZero();
 
 		//make each of the inputs an alias
 		for (var i = 0; i < inputCount; i++){
@@ -50,7 +45,7 @@ define(["Tone/core/Tone", "Tone/signal/GreaterThanZero"], function(Tone){
 
 	/**
 	 *  clean up
-	 *  @returns {Tone.OR} `this`
+	 *  @returns {Tone.OR} this
 	 */
 	Tone.OR.prototype.dispose = function(){
 		Tone.prototype.dispose.call(this);

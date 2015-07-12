@@ -8,7 +8,8 @@ examples/scratch.html
 *.sublime-project
 
 # grunt modules
-grunt/node_modules/*
+node_modules
+gulp/description
 
 TODO.txt
 
@@ -19,11 +20,14 @@ utils/npm/build/Tone.min.js
 utils/npm/build/Tone.Preset.js
 utils/npm/README.md
 
+utils/jsdoc/*.json
+
 examples/deps/FileSaver.js
 
 examples/oscilloscope.html
 
 .idea
+.DS_Store
 
 wiki
 test/performance

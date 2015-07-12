@@ -3,40 +3,39 @@ define(["Tone/core/Tone"], function(Tone){
 	"use strict";
 
 	/**
-	 *	@class  Split the incoming signal into left and right channels
+	 *	@class  Tone.Split splits an incoming signal into left and right channels.
 	 *	
 	 *  @constructor
 	 *  @extends {Tone}
 	 *  @example
-	 *  var split = new Tone.Split();
-	 *  stereoSignal.connect(split);
+	 * var split = new Tone.Split();
+	 * stereoSignal.connect(split);
 	 */
 	Tone.Split = function(){
 
-		Tone.call(this, 1, 2);
+		Tone.call(this, 0, 2);
 
 		/** 
 		 *  @type {ChannelSplitterNode}
 		 *  @private
 		 */
-		this._splitter = this.context.createChannelSplitter(2);
+		this._splitter = this.input = this.context.createChannelSplitter(2);
 
 		/** 
-		 *  left channel output
-		 *  alais for the first output
+		 *  Left channel output. 
+		 *  Alias for <code>output[0]</code>
 		 *  @type {GainNode}
 		 */
 		this.left = this.output[0] = this.context.createGain();
 
 		/**
-		 *  the right channel output
-		 *  alais for the second output
+		 *  Right channel output.
+		 *  Alias for <code>output[1]</code>
 		 *  @type {GainNode}
 		 */
 		this.right = this.output[1] = this.context.createGain();
 		
 		//connections
-		this.input.connect(this._splitter);
 		this._splitter.connect(this.left, 0, 0);
 		this._splitter.connect(this.right, 1, 0);
 	};
@@ -44,8 +43,8 @@ define(["Tone/core/Tone"], function(Tone){
 	Tone.extend(Tone.Split);
 
 	/**
-	 *  dispose method
-	 *  @returns {Tone.Split} `this`
+	 *  Clean up. 
+	 *  @returns {Tone.Split} this
 	 */
 	Tone.Split.prototype.dispose = function(){
 		Tone.prototype.dispose.call(this);

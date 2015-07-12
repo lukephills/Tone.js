@@ -16,10 +16,13 @@ function(Tone){
 		Tone.StereoEffect.call(this, options);
 
 		/**
-		 *  controls the amount of feedback
-		 *  @type {Tone.Signal}
+		 *  The amount of feedback from the output
+		 *  back into the input of the effect (routed
+		 *  across left and right channels).
+		 *  @type {NormalRange}
+		 *  @signal
 		 */
-		this.feedback = new Tone.Signal(options.feedback);
+		this.feedback = new Tone.Signal(options.feedback, Tone.Type.NormalRange);
 
 		/**
 		 *  the left side feeback
@@ -39,16 +42,18 @@ function(Tone){
 		this.effectReturnL.chain(this._feedbackLR, this.effectSendR);
 		this.effectReturnR.chain(this._feedbackRL, this.effectSendL);
 		this.feedback.fan(this._feedbackLR.gain, this._feedbackRL.gain);
+		this._readOnly(["feedback"]);
 	};
 
 	Tone.extend(Tone.StereoXFeedbackEffect, Tone.FeedbackEffect);
 
 	/**
 	 *  clean up
-	 *  @returns {Tone.StereoXFeedbackEffect} `this`
+	 *  @returns {Tone.StereoXFeedbackEffect} this
 	 */
 	Tone.StereoXFeedbackEffect.prototype.dispose = function(){
 		Tone.StereoEffect.prototype.dispose.call(this);
+		this._writable(["feedback"]);
 		this.feedback.dispose();
 		this.feedback = null;
 		this._feedbackLR.disconnect();

@@ -71,7 +71,9 @@ function(Tone, chai, Recorder, Master, Signal){
 				typeof member !== "boolean" &&
 				prop !== "preset" && 
 				!(member instanceof AudioContext)){
-				expect(obj[prop]).to.equal(null);
+				if (member !== null){
+					throw Error("property was not completely disposed: "+prop);
+				}
 			}
 		}
 	}
@@ -152,7 +154,7 @@ function(Tone, chai, Recorder, Master, Signal){
 			if (Tone.context !== audioContext){
 				Tone.setContext(audioContext);
 			}
-			Master.mute();
+			Master.mute = true;
 		},
 		acceptsInput : acceptsInput,
 		acceptsOutput : acceptsOutput,

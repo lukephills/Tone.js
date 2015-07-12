@@ -8,9 +8,9 @@ define(["Tone/core/Tone", "Tone/signal/Multiply", "Tone/signal/Signal"], functio
 	 *  @constructor
 	 *  @extends {Tone.SignalBase}
 	 *  @example
-	 *  var neg = new Tone.Negate();
-	 *  var sig = new Tone.Signal(-2).connect(neg);
-	 *  //output of neg is positive 2. 
+	 * var neg = new Tone.Negate();
+	 * var sig = new Tone.Signal(-2).connect(neg);
+	 * //output of neg is positive 2. 
 	 */
 	Tone.Negate = function(){
 		/**
@@ -18,14 +18,14 @@ define(["Tone/core/Tone", "Tone/signal/Multiply", "Tone/signal/Signal"], functio
 		 *  @type {Tone.Multiply}
 		 *  @private
 		 */
-		this._multiply = this.input = this.output= new Tone.Multiply(-1);
+		this._multiply = this.input = this.output = new Tone.Multiply(-1);
 	};
 
 	Tone.extend(Tone.Negate, Tone.SignalBase);
 
 	/**
 	 *  clean up
-	 *  @returns {Tone.Negate} `this`
+	 *  @returns {Tone.Negate} this
 	 */
 	Tone.Negate.prototype.dispose = function(){
 		Tone.prototype.dispose.call(this);

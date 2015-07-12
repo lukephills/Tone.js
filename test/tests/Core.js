@@ -1,8 +1,8 @@
 /* global it, describe, after */
 
 define(["chai", "Tone/core/Tone", "Tone/core/Master", "Tone/core/Bus", 
-	"Tone/core/Note", "tests/Common", "Tone/core/Buffer", "Tone/source/Oscillator"], 
-function(chai, Tone, Master, Bus, Note, Test, Buffer, Oscillator){
+	"Tone/core/Note", "tests/Common", "Tone/core/Buffer", "Tone/source/Oscillator", "Tone/instrument/SimpleSynth"], 
+function(chai, Tone, Master, Bus, Note, Test, Buffer, Oscillator, SimpleSynth){
 	var expect = chai.expect;
 
 	describe("AudioContext", function(){
@@ -147,7 +147,7 @@ function(chai, Tone, Master, Bus, Note, Test, Buffer, Oscillator){
 			osc.dispose();
 		});		
 
-		it("ramps to a value given an object a ramp time", function(done){
+		it("ramps to a value given an object and ramp time", function(done){
 			var osc;
 			var setValue = 30;
 			Test.offlineTest(0.6, function(dest){
@@ -196,6 +196,43 @@ function(chai, Tone, Master, Bus, Note, Test, Buffer, Oscillator){
 			var keys = ["frequency", "type"];
 			expect(Object.keys(osc.get(keys))).to.deep.equal(keys);
 			osc.dispose();
+		});	
+
+		it("can 'set' a nested object", function(){
+			var synth = new SimpleSynth();
+			synth.set({
+				"oscillator" : {
+					"type" : "square2"
+				}
+			});
+			expect(synth.oscillator.type).to.equal("square2");
+			synth.dispose();
+		});	
+
+		it("can 'set' a value with dot notation", function(){
+			var synth = new SimpleSynth();
+			synth.set("oscillator.type", "triangle");
+			expect(synth.oscillator.type).to.equal("triangle");
+			synth.dispose();
+		});	
+
+		it("can 'get' a value with dot notation", function(){
+			var synth = new SimpleSynth();
+			synth.set({
+				"oscillator" : {
+					"type" : "sine10",
+					"phase" : 20,
+				}
+			});
+			expect(synth.get("oscillator.type").oscillator.type).to.equal("sine10");
+			//get multiple values
+			expect(synth.get(["oscillator.type", "oscillator.phase"])).to.deep.equal({
+				"oscillator" : {
+					"type" : "sine10",
+					"phase" : 20,
+				}
+			});
+			synth.dispose();
 		});	
 
 	});
@@ -324,6 +361,17 @@ function(chai, Tone, Master, Bus, Note, Test, Buffer, Oscillator){
 				//reset this method for the next one
 				Buffer.onprogress = function(){};
 			};
+		});
+
+		it("can reverse a buffer", function(done){
+			var buffer = new Buffer("./testAudio/kick.mp3", function(){
+				var buffArray = buffer.get();
+				var lastSample = buffArray[buffArray.length - 1];
+				buffer.reverse = true;
+				expect(buffer.get()[0]).to.equal(lastSample);
+				buffer.dispose();
+				done();
+			});
 		});
 	});
 
