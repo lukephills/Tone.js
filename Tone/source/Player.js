@@ -193,7 +193,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 			//start it
 			this._source.start(startTime, offset, duration);
 		} else {
-			throw Error("tried to start Player before the buffer was loaded");
+			console.log("tried to start Player before the buffer was loaded");
 		}
 		return this;
 	};
