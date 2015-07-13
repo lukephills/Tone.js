@@ -10,11 +10,11 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {Array} Array of options objects for each bands filter setting. The amount of items in the array
      *  denotes how many EQ bands there will be
      */
-    Tone.MultibandEQ = function(options){
+    Tone.EQMultiband = function(options){
 
 
         //TODO: get all of the defaults
-        //options = Tone.MultibandEQ.defaults;
+        //options = Tone.EQMultiband.defaults;
 
 
         this._bands = [];
@@ -49,7 +49,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
         }
     };
 
-    Tone.extend(Tone.MultibandEQ);
+    Tone.extend(Tone.EQMultiband);
 
     /**
      *  the default parameters
@@ -57,7 +57,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @static
      *  @type {Object}
      */
-    Tone.MultibandEQ.defaults = [
+    Tone.EQMultiband.defaults = [
         {
             "type" : "lowshelf",
             "frequency" : 80,
@@ -108,7 +108,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {string} type the filter type
      *  @param {number} the EQ band
      */
-    Tone.MultibandEQ.prototype.setType = function(type, band){
+    Tone.EQMultiband.prototype.setType = function(type, band){
         this._bands[band-1].type = type;
     };
 
@@ -117,7 +117,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} the EQ band
      *  @return {string} the type of the filter
      */
-    Tone.MultibandEQ.prototype.getType = function(band){
+    Tone.EQMultiband.prototype.getType = function(band){
         return this._bands[band-1].type;
     };
 
@@ -126,7 +126,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} freq the frequency value
      *  @param {number} the EQ band
      */
-    Tone.MultibandEQ.prototype.setFrequency = function(freq, band){
+    Tone.EQMultiband.prototype.setFrequency = function(freq, band){
         this._bands[band-1].frequency.value = freq;
     };
 
@@ -135,7 +135,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} the EQ band
      *  @return {number} the frequency of the EQ
      */
-    Tone.MultibandEQ.prototype.getFrequency = function(band){
+    Tone.EQMultiband.prototype.getFrequency = function(band){
         return this._bands[band-1].frequency.value;
     };
 
@@ -144,7 +144,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} Q the filter's Q
      *  @param {number} the EQ band
      */
-    Tone.MultibandEQ.prototype.setQ = function(Q, band){
+    Tone.EQMultiband.prototype.setQ = function(Q, band){
         this._bands[band-1].Q.value = Q;
     };
 
@@ -153,7 +153,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} the EQ band
      *  @return {number} the Q value
      */
-    Tone.MultibandEQ.prototype.getQ = function(band){
+    Tone.EQMultiband.prototype.getQ = function(band){
         return this._bands[band-1].Q.value;
     };
 
@@ -162,7 +162,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} the gain of this band
      *  @param {number} the EQ band
      */
-    Tone.MultibandEQ.prototype.setGain = function(gain, band){
+    Tone.EQMultiband.prototype.setGain = function(gain, band){
         this._bands[band-1].gain.value = gain;
     };
 
@@ -171,7 +171,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
      *  @param {number} the EQ band
      *  @return {number} the current gain value
      */
-    Tone.MultibandEQ.prototype.getGain = function(band){
+    Tone.EQMultiband.prototype.getGain = function(band){
         return this._bands[band-1].gain.value;
     };
 
@@ -179,7 +179,7 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
     /**
      *  clean up
      */
-    Tone.MultibandEQ.prototype.dispose = function(){
+    Tone.EQMultiband.prototype.dispose = function(){
         Tone.prototype.dispose.call(this);
         for (var i = 0; i < this._bands.length; i++) {
             this._bands[i].dispose();
@@ -188,5 +188,5 @@ define(["Tone/core/Tone", "Tone/component/Filter"], function(Tone){
         this._bands = null;
     };
 
-    return Tone.MultibandEQ;
+    return Tone.EQMultiband;
 });
