@@ -129,15 +129,16 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
-         *  start the sample and simultaneously trigger the envelopes.
-         *  @param {Tone.Time} [time=now] the time when the note should start
-         *  @param {offset} [0] the offset time in the buffer (in seconds) where playback will begin
+         *  Start the sample and trigger the envelope.
+         *  @param {Tone.Time} [time=now] The time when the note should start
+         *  @param {Tone.Time} [0] The offset time in the buffer (in seconds) where playback will begin
+         *  @param {Tone.Time}  The duration of the portion (in seconds) to be played
          *  @param {number} [velocity=1] the velocity of the note
          *  @returns {Tone.Simpler} `this`
          */
-        Tone.Simpler.prototype.triggerAttack = function(time, offset, velocity){
+        Tone.Simpler.prototype.triggerAttack = function(time, offset, duration, velocity){
             time = this.toSeconds(time);
-            this.player.start(time, offset);
+            this.player.start(time, offset, duration);
             this.envelope.triggerAttack(time, velocity);
             return this;
         };

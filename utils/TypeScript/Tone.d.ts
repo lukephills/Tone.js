@@ -910,7 +910,7 @@ declare module Tone {
         envelope: Tone.Envelope;
         player: Tone.Player;
         dispose(): Tone.Simpler;
-        triggerAttack(time?: Tone.Time, offset?: Tone.Time, velocity?: number): Tone.Simpler;
+        triggerAttack(time?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time, velocity?: number): Tone.Simpler;
         triggerRelease(time?: Tone.Time): Tone.Simpler;
     }
 
