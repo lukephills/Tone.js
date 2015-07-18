@@ -145,7 +145,7 @@ declare module Tone {
     }
 
     var Buffer: {
-        new(url: AudioBuffer | string): Tone.Buffer;
+        new(url: AudioBuffer | string, callback?:(e: any) => any): Tone.Buffer;
     };
 
     interface Buffer extends Tone {
@@ -899,6 +899,18 @@ declare module Tone {
         sample: any;
         dispose(): Tone.Sampler;
         triggerAttack(sample?: string, time?: Tone.Time, velocity?: number): Tone.Sampler;
+        triggerRelease(time?: Tone.Time): Tone.Sampler;
+    }
+
+    var Simpler: {
+        new(urls: any, options?: Object): Tone.Sampler;
+    };
+
+    interface Simpler extends Tone.Instrument {
+        envelope: Tone.Envelope;
+        player: Tone.Player;
+        dispose(): Tone.Sampler;
+        triggerAttack(time?: Tone.Time, offset?: Tone.Time, velocity?: number): Tone.Sampler;
         triggerRelease(time?: Tone.Time): Tone.Sampler;
     }
 
