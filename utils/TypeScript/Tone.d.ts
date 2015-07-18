@@ -903,15 +903,15 @@ declare module Tone {
     }
 
     var Simpler: {
-        new(urls: any, options?: Object): Tone.Sampler;
+        new(urls: any, options?: Object): Tone.Simpler;
     };
 
     interface Simpler extends Tone.Instrument {
         envelope: Tone.Envelope;
         player: Tone.Player;
-        dispose(): Tone.Sampler;
-        triggerAttack(time?: Tone.Time, offset?: Tone.Time, velocity?: number): Tone.Sampler;
-        triggerRelease(time?: Tone.Time): Tone.Sampler;
+        dispose(): Tone.Simpler;
+        triggerAttack(time?: Tone.Time, offset?: Tone.Time, velocity?: number): Tone.Simpler;
+        triggerRelease(time?: Tone.Time): Tone.Simpler;
     }
 
     var Scale: {

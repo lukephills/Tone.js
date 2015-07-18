@@ -15,43 +15,53 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
          *  @param {Object} options the options object for the synth
          *  @example
          *  var simpler = new Simpler({
-	 *  	A : {
-	 *  		1 : {"./audio/casio/A1.mp3",
-	 *  		2 : "./audio/casio/A2.mp3",
-	 *  	},
-	 *  	"B.1" : "./audio/casio/B1.mp3",
-	 *  });
-	 *  //...once samples have loaded
-	 *  simpler.triggerAttack(time, offset, velocity);
-	 */
+     *  	A : {
+     *  		1 : {"./audio/casio/A1.mp3",
+     *  		2 : "./audio/casio/A2.mp3",
+     *  	},
+     *  	"B.1" : "./audio/casio/B1.mp3",
+     *  }).toMaster();
+     *
+     *  //listen for when all the samples have loaded
+     * Tone.Buffer.onload = function(){
+     *  simpler.triggerAttack(time, offset, velocity);
+     * };
+     */
         Tone.Simpler = function(urls, options){
 
-            Tone.Instrument.call(this);
             options = this.defaultArg(options, Tone.Simpler.defaults);
+            Tone.Instrument.call(this, options);
 
             /**
-             *  the sample player
+             *  The sample player
              *  @type {Tone.Player}
              */
             this.player = new Tone.Player(options.player);
-            this.player.retrigger = true;
 
             /**
              *  the buffers
-             *  @type {Object<Tone.Buffer>}
+             *  @type {Object}
              *  @private
              */
             this._buffers = {};
 
             /**
              *  The amplitude envelope.
-             *  @type {Tone.Envelope}
+             *  @type {Tone.AmplitudeEnvelope}
              */
             this.envelope = new Tone.AmplitudeEnvelope(options.envelope);
+
+            /**
+             *  The name of the current sample.
+             *  @type {string}
+             *  @private
+             */
+            this._sample = options.sample;
 
             //connections / setup
             this._loadBuffers(urls);
             this.player.chain(this.envelope, this.output);
+            this._readOnly(["player", "envelope"]);
         };
 
         Tone.extend(Tone.Simpler, Tone.Instrument);
@@ -61,6 +71,8 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
          *  @static
          */
         Tone.Simpler.defaults = {
+            "sample" : 0,
+            "pitch" : 0,
             "player" : {
                 "loop" : false,
             },
@@ -93,8 +105,8 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
-         *  flatten an object into a single depth object
-         *  https://gist.github.com/penguinboy/762197
+         *  Flatten an object into a single depth object.
+         *  thanks to https://gist.github.com/penguinboy/762197
          *  @param   {Object} ob
          *  @return  {Object}
          *  @private
@@ -117,7 +129,7 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
-         *  start the sample.
+         *  start the sample and simultaneously trigger the envelopes.
          *  @param {Tone.Time} [time=now] the time when the note should start
          *  @param {offset} [0] the offset time in the buffer (in seconds) where playback will begin
          *  @param {number} [velocity=1] the velocity of the note
@@ -131,10 +143,13 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
-         *  start the release portion of the sample
+         *  Start the release portion of the sample. Will stop the sample once the
+         *  envelope has fully released.
          *
-         *  @param {Tone.Time} [time=now] the time when the note should release
-         *  @returns {Tone.Simpler} `this`
+         *  @param {Tone.Time} [time=now] The time when the note should release
+         *  @returns {Tone.Simpler} this
+         *  @example
+         *  sampler.triggerRelease();
          */
         Tone.Simpler.prototype.triggerRelease = function(time){
             time = this.toSeconds(time);
@@ -144,11 +159,54 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
+         * The name of the sample to trigger.
+         * @memberOf Tone.Simpler#
+         * @type {number|string}
+         * @name sample
+         * @example
+         * //set the sample to "A.2" for next time the sample is triggered
+         * sampler.sample = "A.2";
+         */
+        Object.defineProperty(Tone.Simpler.prototype, "sample", {
+            get : function(){
+                return this._sample;
+            },
+            set : function(name){
+                if (this._buffers.hasOwnProperty(name)){
+                    this._sample = name;
+                    this.player.buffer = this._buffers[name];
+                } else {
+                    throw new Error("Simpler does not have a sample named "+name);
+                }
+            }
+        });
+
+        /**
+         * The direction the buffer should play in
+         * @memberOf Tone.Simpler#
+         * @type {boolean}
+         * @name reverse
+         */
+        Object.defineProperty(Tone.Simpler.prototype, "reverse", {
+            get : function(){
+                for (var i in this._buffers){
+                    return this._buffers[i].reverse;
+                }
+            },
+            set : function(rev){
+                for (var i in this._buffers){
+                    this._buffers[i].reverse = rev;
+                }
+            }
+        });
+
+        /**
          *  clean up
-         *  @returns {Tone.Simpler} `this`
+         *  @returns {Tone.Simpler} this
          */
         Tone.Simpler.prototype.dispose = function(){
             Tone.Instrument.prototype.dispose.call(this);
+            this._writable(["player", "envelope"]);
             this.player.dispose();
             this.envelope.dispose();
             this.player = null;
