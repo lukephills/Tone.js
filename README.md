@@ -1,5 +1,14 @@
-Tone.js
+Tone.js (for Blokdust)
 =========
+
+This is an altered version of ToneJS for [Blokdust](https://github.com/BlokDust/BlokDust). 
+
+Main Differences:
+
+* Simpler - Like the sampler except no filter, no filter envelope, triggerAttack method takes offset and duration
+* Envelope (older version without exponential ramping)
+* EQMultiband
+* Noise - has a playbackRate control for pitching noise samples
 
 Tone.js is a Web Audio framework for creating interactive music in the browser. The architecture of Tone.js aims to be familiar to both musicians and audio programmers looking to create web-based audio applications. On the high-level, Tone offers common DAW (digital audio workstation) features like a global transport for scheduling and timing events and prebuilt synths and effects. For signal-processing programmers (coming from languages like Max/MSP), Tone provides a wealth of high performance, low latency building blocks and DSP modules to build your own synthesizers, effects, and complex control signals.
 
