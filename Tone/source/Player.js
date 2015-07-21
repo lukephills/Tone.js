@@ -152,7 +152,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 *  @returns {Tone.Player} this
 	 */
 	Tone.Player.prototype._start = function(startTime, offset, duration){
-		if (this._buffer.loaded){
+		if (this._buffer.loaded && this._buffer._buffer){
 			//if it's a loop the default offset is the loopstart point
 			if (this._loop){
 				offset = this.defaultArg(offset, this._loopStart);
