@@ -1,15 +1,15 @@
 define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(Tone){
 
 	"use strict";
-	
+
 	/**
 	 *  @class  Base class for sources. Sources have start/stop methods
-	 *          and the ability to be synced to the 
+	 *          and the ability to be synced to the
 	 *          start/stop of Tone.Transport.
 	 *
 	 *  @constructor
 	 *  @extends {Tone}
-	 */	
+	 */
 	Tone.Source = function(options){
 		//unlike most ToneNodes, Sources only have an output and no input
 		Tone.call(this, 0, 1);
@@ -38,6 +38,13 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(T
 		 *  @private
 		 */
 		this._nextStop = Infinity;
+
+		/**
+		 * This is Temporary, along with old start and stop methods
+		 * Reverted back to these until state setting and start and stop methods are fixed in tone
+		 * Here is the github issue: https://github.com/Tonejs/Tone.js/issues/74
+		 */
+		this.state = Tone.State.Stopped;
 
 		/**
 		 * The volume of the output in decibels.
@@ -86,16 +93,17 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(T
 	 *  @memberOf Tone.Source#
 	 *  @name state
 	 */
-	Object.defineProperty(Tone.Source.prototype, "state", {
-		get : function(){
-			return this._stateAtTime(this.now());
-		}
-	});
+	//Object.defineProperty(Tone.Source.prototype, "state", {
+	//	get : function(){
+	//		return this._stateAtTime(this.now());
+	//	}
+	//});
+
 
 	/**
 	 *  Get the state of the source at the specified time.
 	 *  @param  {Time}  time
-	 *  @return  {Tone.State} 
+	 *  @return  {Tone.State}
 	 *  @private
 	 */
 	Tone.Source.prototype._stateAtTime = function(time){
@@ -110,42 +118,77 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(T
 	};
 
 	/**
-	 *  Start the source at the specified time. If no time is given, 
+	 *  Start the source at the specified time. If no time is given,
 	 *  start the source now.
 	 *  @param  {Time} [time=now] When the source should be started.
 	 *  @returns {Tone.Source} this
 	 *  @example
 	 * source.start("+0.5"); //starts the source 0.5 seconds from now
 	 */
+		//Tone.Source.prototype.start = function(time){
+		//	time = this.toSeconds(time);
+		//	if (this._stateAtTime(time) !== Tone.State.Started || this.retrigger){
+		//		this._nextStart = time;
+		//		this._nextStop = Infinity;
+		//		this._start.apply(this, arguments);
+		//	}
+		//	return this;
+		//};
 	Tone.Source.prototype.start = function(time){
-		time = this.toSeconds(time);
-		if (this._stateAtTime(time) !== Tone.State.Started || this.retrigger){
-			this._nextStart = time;
-			this._nextStop = Infinity;
+		if (this.state !== Tone.State.Started || this.retrigger){
+			var now = this.now();
+			time = this.toSeconds(time, now);
+			var diff = now - time;
+			if (diff !== 0){
+				this._timeout = setTimeout(function(){
+					this.state = Tone.State.Started;
+				}.bind(this), diff * 1000);
+			} else {
+				this.state = Tone.State.Started;
+			}
 			this._start.apply(this, arguments);
 		}
 		return this;
 	};
 
 	/**
-	 *  Stop the source at the specified time. If no time is given, 
+	 *  Stop the source at the specified time. If no time is given,
 	 *  stop the source now.
-	 *  @param  {Time} [time=now] When the source should be stopped. 
+	 *  @param  {Time} [time=now] When the source should be stopped.
 	 *  @returns {Tone.Source} this
 	 *  @example
 	 * source.stop(); // stops the source immediately
 	 */
+		//Tone.Source.prototype.stop = function(time){
+		//	var now = this.now();
+		//	time = this.toSeconds(time, now);
+		//	if (this._stateAtTime(time) === Tone.State.Started){
+		//		this._nextStop = this.toSeconds(time);
+		//		clearTimeout(this._timeout);
+		//		var diff = time - now;
+		//		if (diff > 0){
+		//			//add a small buffer before invoking the callback
+		//			this._timeout = setTimeout(this.onended, diff * 1000 + 20);
+		//		} else {
+		//			this.onended();
+		//		}
+		//		this._stop.apply(this, arguments);
+		//	}
+		//	return this;
+		//};
 	Tone.Source.prototype.stop = function(time){
-		var now = this.now();
-		time = this.toSeconds(time, now);
-		if (this._stateAtTime(time) === Tone.State.Started){
-			this._nextStop = this.toSeconds(time);
+		if (this.state !== Tone.State.Stopped){
 			clearTimeout(this._timeout);
-			var diff = time - now;
-			if (diff > 0){
-				//add a small buffer before invoking the callback
-				this._timeout = setTimeout(this.onended, diff * 1000 + 20);
+			var now = this.now();
+			time = this.toSeconds(time, now);
+			var diff = now - time;
+			if (diff !== 0){
+				this._timeout = setTimeout(function(){
+					this.state = Tone.State.Stopped;
+					this.onended();
+				}.bind(this), diff * 1000);
 			} else {
+				this.state = Tone.State.Stopped;
 				this.onended();
 			}
 			this._stop.apply(this, arguments);
@@ -153,11 +196,12 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(T
 		return this;
 	};
 
+
 	/**
-	 *  Not ready yet. 
- 	 *  @private
- 	 *  @abstract
-	 *  @param  {Time} time 
+	 *  Not ready yet.
+	 *  @private
+	 *  @abstract
+	 *  @param  {Time} time
 	 *  @returns {Tone.Source} this
 	 */
 	Tone.Source.prototype.pause = function(time){
@@ -169,15 +213,15 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Master"], function(T
 	/**
 	 *  Sync the source to the Transport so that when the transport
 	 *  is started, this source is started and when the transport is stopped
-	 *  or paused, so is the source. 
+	 *  or paused, so is the source.
 	 *
 	 *  @param {Time} [delay=0] Delay time before starting the source after the
-	 *                               Transport has started. 
+	 *                               Transport has started.
 	 *  @returns {Tone.Source} this
 	 *  @example
 	 * //sync the source to start 1 measure after the transport starts
 	 * source.sync("1m");
-	 * //start the transport. the source will start 1 measure later. 
+	 * //start the transport. the source will start 1 measure later.
 	 * Tone.Transport.start();
 	 */
 	Tone.Source.prototype.sync = function(delay){
