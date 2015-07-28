@@ -887,7 +887,7 @@ declare module Tone {
     }
 
     var Sampler: {
-        new(urls: any, options?: Object): Tone.Sampler;
+        new(urls?: any, options?: Object): Tone.Sampler;
     };
 
     interface Sampler extends Tone.Instrument {
@@ -903,7 +903,7 @@ declare module Tone {
     }
 
     var Simpler: {
-        new(urls: any, options?: Object): Tone.Simpler;
+        new(urls?: any, options?: Object): Tone.Simpler;
     };
 
     interface Simpler extends Tone.Instrument {
