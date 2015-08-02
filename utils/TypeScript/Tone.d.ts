@@ -208,7 +208,7 @@ declare module Tone {
     }
 
     var Convolver: {
-        new(url: string | AudioBuffer): Tone.Convolver;
+        new(url?: string | AudioBuffer): Tone.Convolver;
     };
 
     interface Convolver extends Tone.Effect {
