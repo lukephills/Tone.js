@@ -3,7 +3,7 @@
 // Definitions by: Luke Phillips <https://github.com/lukephills>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
-interface Tone {
+declare class Tone {
     new(inputs?: number, outputs?: number): Tone;
     context: AudioContext;
     input: GainNode;
@@ -967,7 +967,7 @@ declare module Tone {
 
     interface Signal extends Tone.SignalBase {
         units: Tone.Signal.Type;
-        value: Tone.Time | Tone.Frequency | number;
+        value: any; //Tone.Time | Tone.Frequency | number;
         cancelScheduledValues(startTime: Tone.Time): Tone.Signal;
         dispose(): Tone.Signal;
         exponentialRampToValueAtTime(value: number, endTime: Tone.Time): Tone.Signal;
