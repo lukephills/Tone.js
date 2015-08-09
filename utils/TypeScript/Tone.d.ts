@@ -157,8 +157,6 @@ declare module Tone {
         reverse: boolean;
         url: string;
         load(url: string, callback?: (e: any) => any ): Tone.Buffer;
-        onerror();
-        onprogress();
         dispose(): Tone.Buffer;
         buffer: Tone.Buffer | AudioBuffer;
         get(): AudioBuffer;
