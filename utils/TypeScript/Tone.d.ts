@@ -145,19 +145,22 @@ declare module Tone {
     }
 
     var Buffer: {
-        new(url: AudioBuffer | string, callback?:(e: any) => any): Tone.Buffer;
+        new(url?: AudioBuffer | string, callback?:(e: any) => any): Tone.Buffer;
     };
 
     interface Buffer extends Tone {
-        MAX_SIMULTANEOUS_DOWNLOADS: number;
         duration: number;
         loaded: boolean;
         onload: (e: any) => any;
+        onprogress: (percent: number) => any;
+        onerror: (err: any) => any;
+        reverse: boolean;
         url: string;
         load(url: string, callback?: (e: any) => any ): Tone.Buffer;
         onerror();
         onprogress();
         dispose(): Tone.Buffer;
+        buffer: Tone.Buffer | AudioBuffer;
         get(): AudioBuffer;
         set(buffer: AudioBuffer | string ): Tone.Buffer;
     }
@@ -800,7 +803,7 @@ declare module Tone {
 
     interface Player extends Tone.Source {
         autostart: boolean;
-        buffer: AudioBuffer;
+        buffer: Tone.Buffer | AudioBuffer;
         duration: number;
         loop: boolean;
         loopEnd: Tone.Time;
