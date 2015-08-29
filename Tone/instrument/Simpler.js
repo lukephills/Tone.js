@@ -160,6 +160,22 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
         };
 
         /**
+         * Start and stop the sampler for a length of time
+         *  @param {Tone.Time} length of playback time before the release kicks in
+         *  @param {Tone.Time} [time=now] The time when the note should start
+         *  @param {Tone.Time} offset time in the buffer (in seconds) where playback will begin
+         *  @param {Tone.Time}  duration of the portion (in seconds) to be played
+         *  @param {number} [velocity=1] the velocity of the note
+         */
+        Tone.Simpler.prototype.triggerAttackRelease = function(length, time, offset, duration, velocity){
+            time = this.toSeconds(time);
+            length = this.toSeconds(length);
+            this.triggerAttack(time, offset, duration, velocity);
+            this.triggerRelease(time + length);
+            return this;
+        };
+
+        /**
          * The name of the sample to trigger.
          * @memberOf Tone.Simpler#
          * @type {number|string}
