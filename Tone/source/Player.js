@@ -9,7 +9,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 *  @extends {Tone.Source}
 	 *  @param {string|AudioBuffer} url Either the AudioBuffer or the url from
 	 *                                  which to load the AudioBuffer
-	 *  @param {function=} onload The function to invoke when the buffer is loaded. 
+	 *  @param {function=} onload The function to invoke when the buffer is loaded.
 	 *                            Recommended to use Tone.Buffer.onload instead.
 	 *  @example
 	 * var player = new Tone.Player("./path/to/sample.mp3").toMaster();
@@ -30,7 +30,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 
 		/**
 		 *  If the file should play as soon
-		 *  as the buffer is loaded. 
+		 *  as the buffer is loaded.
 		 *  @type {boolean}
 		 *  @example
 		 * //will play as soon as it's loaded
@@ -47,7 +47,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		 *  @type {Tone.Buffer}
 		 */
 		this._buffer = new Tone.Buffer({
-			"url" : options.url, 
+			"url" : options.url,
 			"onload" : this._onload.bind(this, options.onload),
 			"reverse" : options.reverse
 		});
@@ -73,18 +73,19 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		 */
 		this._loopEnd = options.loopEnd;
 
+
 		/**
-		 *  the playback rate
-		 *  @private
-		 *  @type {number}
+		 *  The playback control.
+		 *  @type {TODO}
+		 *  @signal
 		 */
-		this._playbackRate = options.playbackRate;
+		this.playbackRate = new Tone.Signal(options.playbackRate);
 
 		/**
 		 *  Enabling retrigger will allow a player to be restarted
-		 *  before the the previous 'start' is done playing. Otherwise, 
+		 *  before the the previous 'start' is done playing. Otherwise,
 		 *  successive calls to Tone.Player.start will only start
-		 *  the sample if it had played all the way through. 
+		 *  the sample if it had played all the way through.
 		 *  @type {boolean}
 		 */
 		this.retrigger = options.retrigger;
@@ -145,7 +146,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 *  @private
 	 *  @param  {Time} [startTime=now] when the player should start.
 	 *  @param  {Time} [offset=0] the offset from the beginning of the sample
-	 *                                 to start at. 
+	 *                                 to start at.
 	 *  @param  {Time=} duration how long the sample should play. If no duration
 	 *                                is given, it will default to the full length
 	 *                                of the sample (minus any offset)
@@ -180,9 +181,9 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 				this._nextStop = startTime + duration;
 			}
 			//and other properties
-			this._source.playbackRate.value = this._playbackRate;
 			this._source.onended = this.onended;
 			this._source.connect(this.output);
+			this.playbackRate.connect(this._source.playbackRate);
 			//start it
 			this._source.start(startTime, offset, duration);
 		} else {
@@ -206,13 +207,13 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	};
 
 	/**
-	 *  Set the loop start and end. Will only loop if loop is 
-	 *  set to true. 
+	 *  Set the loop start and end. Will only loop if loop is
+	 *  set to true.
 	 *  @param {Time} loopStart The loop end time
 	 *  @param {Time} loopEnd The loop end time
 	 *  @returns {Tone.Player} this
 	 *  @example
-	 * //loop 0.1 seconds of the file. 
+	 * //loop 0.1 seconds of the file.
 	 * player.setLoopPoints(0.2, 0.3);
 	 * player.loop = true;
 	 */
@@ -291,26 +292,6 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 	});
 
-	/**
-	 * The playback speed. 1 is normal speed. 
-	 * Note that this is not a Tone.Signal because of a bug in Blink. 
-	 * Please star [this issue](https://code.google.com/p/chromium/issues/detail?id=311284)
-	 * if this an important thing to you.
-	 * @memberOf Tone.Player#
-	 * @type {number}
-	 * @name playbackRate
-	 */
-	Object.defineProperty(Tone.Player.prototype, "playbackRate", {
-		get : function(){
-			return this._playbackRate;
-		},
-		set : function(rate){
-			this._playbackRate = rate;
-			if (this._source) {
-				this._source.playbackRate.value = rate;
-			}
-		}
-	});
 
 	/**
 	 * The direction the buffer should play in
