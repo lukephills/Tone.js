@@ -54,6 +54,7 @@ function(Tone){
 
 		//set the oscillator
 		this.type = options.type;
+		this.phase = options.phase;
 		this._readOnly(["frequency", "detune"]);
 	};
 
@@ -69,6 +70,7 @@ function(Tone){
 		"frequency" : 440,
 		"detune" : 0,
 		"type" : "sine",
+		"phase" : 0,
 		"width" : 0.4, //only applies if the oscillator is set to "pulse",
 		"modulationFrequency" : 0.4, //only applies if the oscillator is set to "pwm",
 	};
@@ -130,7 +132,7 @@ function(Tone){
 					this._createNewOscillator(Tone.PulseOscillator);
 				}
 			} else {
-				throw new TypeError("Tone.OmniOscillator does not support type "+type);
+				throw new Error("Tone.OmniOscillator does not support type "+type);
 			}
 		}
 	});
@@ -141,14 +143,15 @@ function(Tone){
 	 */
 	Tone.OmniOscillator.prototype._createNewOscillator = function(OscillatorConstructor){
 		//short delay to avoid clicks on the change
-		var now = this.now() + this.bufferTime;
+		var now = this.now() + this.blockTime;
 		if (this._oscillator !== null){
 			var oldOsc = this._oscillator;
 			oldOsc.stop(now);
-			oldOsc.onended = function(){
+			//dispose the old one
+			setTimeout(function(){
 				oldOsc.dispose();
 				oldOsc = null;
-			};
+			}, this.blockTime * 1000);
 		}
 		this._oscillator = new OscillatorConstructor();
 		this.frequency.connect(this._oscillator.frequency);

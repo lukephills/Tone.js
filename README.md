@@ -19,14 +19,18 @@ Tone.js is a Web Audio framework for creating interactive music in the browser. 
 # Demos
 
 * [Jazz.Computer - Yotam Mann](http://jazz.computer/)
-* [motionEmotion - emotion & gesture-based arpeggiator and synthesizer](http://motionemotion.herokuapp.com/)
-* [p5.sound - built with Tone.js](https://github.com/processing/p5.js-sound)
+* [motionEmotion - Karen Peng, Jason Sigal](http://motionemotion.herokuapp.com/)
+* [p5.sound - build with Tone.js](https://github.com/processing/p5.js-sound)
 * [Hypercube by @eddietree](http://eddietree.github.io/hypercube/)
 * [randomcommander.io by Jake Albaugh](http://randomcommander.io/)
 * [Tone.js + NexusUI by taylorbf](http://taylorbf.github.io/Tone-Rack/)
 * [Solarbeat - Luke Twyman](http://www.whitevinyldesign.com/solarbeat/)
-* [João Costa - Wind](http://wind.joaocosta.co)
-* [Abe Rubenstein - Block Chords](http://dev.abe.sh/block-chords/)
+* [Wind - João Costa](http://wind.joaocosta.co)
+* [Block Chords - Abe Rubenstein](http://dev.abe.sh/block-chords/)
+* [This is Not a Machine Learning - David Karam](http://posttool.github.io/)
+* [Airjam - Seth Kranzler, Abe Rubenstein, and Teresa Lamb](http://airjam.band/)
+* [Calculaural - Matthew Hasbach](https://github.com/mjhasbach/calculaural)
+* [Scratch + Tone.js - Eric Rosenbaum](http://ericrosenbaum.github.io/tone-synth-extension/)
 
 Using Tone.js? I'd love to hear it: yotammann@gmail.com
 
@@ -34,11 +38,11 @@ Using Tone.js? I'd love to hear it: yotammann@gmail.com
 
 Tone can be installed in a few of ways:
 
-* Download Tone.js from Github - [full](https://raw.githubusercontent.com/TONEnoTONE/Tone.js/master/build/Tone.js) | [min](https://raw.githubusercontent.com/TONEnoTONE/Tone.js/master/build/Tone.min.js)
+* Download Tone.js from Github - [full](https://raw.githubusercontent.com/Tonejs/Tone.js/master/build/Tone.js) | [min](https://raw.githubusercontent.com/Tonejs/Tone.js/master/build/Tone.min.js)
 * [bower](http://bower.io/) - `bower install tone`
 * [npm](https://www.npmjs.org/) - `npm install tone`
 
-The fastest way to include Tone.js on your page is to use the CDN (not for production use, please):
+The fastest way to include Tone.js on your page is to use the CDN (hosted by [github pages](https://pages.github.com/)).
 
 ```html
 <script type="text/javascript" src="http://cdn.tonejs.org/latest/Tone.min.js"></script>
@@ -46,7 +50,7 @@ The fastest way to include Tone.js on your page is to use the CDN (not for produ
 
 It's always much safer to use a specific version rather than just "latest".
 
-[Full Installation Instruction](https://github.com/TONEnoTONE/Tone.js/wiki/Installation)
+[Full Installation Instruction](https://github.com/Tonejs/Tone.js/wiki/Installation)
 
 # Hello World
 
@@ -62,7 +66,7 @@ synth.triggerAttackRelease("C4", "8n");
 
 A unique feature of the library is the oscillator-based Transport which allows for application-wide synchronization of sources and signals. The Transport allows you to register callbacks at precise moments along the timeline which are invoked right before the event with the exact time of the event. Additionally, because the Transport is implemented with an oscillator, it is capable of elaborate tempo curves and automation. 
 
-[Read more](https://github.com/TONEnoTONE/Tone.js/wiki/Transport).
+[Read more](https://github.com/Tonejs/Tone.js/wiki/Transport).
 
 ### Time
 
@@ -70,27 +74,27 @@ In the Tone library, time can be described in a number of ways. Any method which
 
 For example to `"4n"` is a quarter-note and `"4:2:0"` is the third beat of the fifth measure (remember we're counting from 0). 
 
-[Read more Time](https://github.com/TONEnoTONE/Tone.js/wiki/Time).
+[Read more Time](https://github.com/Tonejs/Tone.js/wiki/Time).
 
 # Sources
 
 Aside from the 4 basic oscillator types (sine, square, triangle, sawtooth), Tone.js provides a few other sources such as a buffer player (Tone.Player), a noise generator, and two additional oscillator types (pwm, pulse). 
 
-[Read more](https://github.com/TONEnoTONE/Tone.js/wiki/Sources).
+[Read more](https://github.com/Tonejs/Tone.js/wiki/Sources).
 
 # Instruments
 
-Tone has a few prebuilt synthesizers. [Read more about their common interface](https://github.com/TONEnoTONE/Tone.js/wiki/Instruments).
+Tone has a few prebuilt synthesizers. [Read more about their common interface](https://github.com/Tonejs/Tone.js/wiki/Instruments).
 
 # Effects
 
-Tone.js also has a few stereo and mono effects some of which also have their own presets. [Read more about using effects](https://github.com/TONEnoTONE/Tone.js/wiki/Effects).
+Tone.js also has a few stereo and mono effects some of which also have their own presets. [Read more about using effects](https://github.com/Tonejs/Tone.js/wiki/Effects).
 
 # Signals
 
 Like the underlying Web Audio API, Tone.js is built with audio-rate signal control over nearly everything. This is a powerful feature which allows for sample-accurate synchronization of multiple parameters with a single signal. Signals are built entirely without the ScriptProcessorNode so they do not introduce much latency and processing overhead. Instead, all signal math and logic let GainNodes and WaveShaperNodes do all of the work so that all processing is done in the underlying Assembly/C/C++ provided by the API. Signals are used extensively internally and are also useful for general DSP and control signal logic and transformations. 
 
-Read more about [signals](https://github.com/TONEnoTONE/Tone.js/wiki/Signals). 
+Read more about [signals](https://github.com/Tonejs/Tone.js/wiki/Signals). 
 
 # AudioContext
 
@@ -107,3 +111,5 @@ Tone.js uses very few ScriptProcessorNodes. Nearly all of the Tone Modules find 
 * [Tuna.js](https://github.com/Dinahmoe/tuna)
 * [Many of Chris Wilson's Repositories](https://github.com/cwilso)
 * [The Spec](http://webaudio.github.io/web-audio-api/)
+* [Sound on Sound - Synth Secrets](http://www.soundonsound.com/sos/may99/articles/synthsec.htm)
+* [Miller Puckette - Theory and Techniques of Electronic Music](http://msp.ucsd.edu/techniques.htm)

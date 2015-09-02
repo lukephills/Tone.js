@@ -1,4 +1,4 @@
-define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
+define(["Tone/core/Tone", "Tone/signal/WaveShaper", "Tone/core/Types"], function(Tone){
 
 	"use strict";
 
@@ -8,7 +8,7 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	 *          has all of the methods available to native Web Audio 
 	 *          [AudioParam](http://webaudio.github.io/web-audio-api/#the-audioparam-interface)
 	 *          as well as additional conveniences. Read more about working with signals 
-	 *          [here](https://github.com/TONEnoTONE/Tone.js/wiki/Signals).
+	 *          [here](https://github.com/Tonejs/Tone.js/wiki/Signals).
 	 *
 	 *  @constructor
 	 *  @extends {Tone.SignalBase}
@@ -53,6 +53,13 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 		 * @private
 		 */
 		this.output = this._scaler = this.context.createGain();
+
+		/**
+		 *  the minimum output value
+		 *  @type {number}
+		 *  @private
+		 */
+		this._minOutput = 0.00001;
 
 		/**
 		 * The node where the value is set.
@@ -104,16 +111,16 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 		},
 		set : function(value){
 			var convertedVal = this._fromUnits(value);
-			//is this what you want?
-			this.cancelScheduledValues(0);
 			this._value.value = convertedVal;
 		}
 	});
 
 	/**
-	 * @private
-	 * @param  {*} val the value to convert
-	 * @return {number}     the number which the value should be set to
+	 *  Convert the given value from the type specified by Tone.Signal.units
+	 *  into the destination value (such as gain).
+	 *  @private
+	 *  @param  {*} val the value to convert
+	 *  @return {number}     the number which the value should be set to
 	 */
 	Tone.Signal.prototype._fromUnits = function(val){
 		if (this.convert || this.isUndef(this.convert)){
@@ -139,7 +146,7 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	};
 
 	/**
-	 * convert to the desired units
+	 * Convert the signals true value into the units specified by Tone.Signal.units.
 	 * @private
 	 * @param  {number} val the value to convert
 	 * @return {number}
@@ -180,10 +187,9 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	 *  @param {number=} now (Optionally) pass the now value in. 
 	 *  @returns {Tone.Signal} this
 	 */
-	Tone.Signal.prototype.setCurrentValueNow = function(now){
+	Tone.Signal.prototype.setRampPoint = function(now){
 		now = this.defaultArg(now, this.now());
 		var currentVal = this._value.value;
-		this.cancelScheduledValues(now);
 		this._value.setValueAtTime(currentVal, now);
 		return this;
 	};
@@ -212,48 +218,50 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	 */
 	Tone.Signal.prototype.exponentialRampToValueAtTime = function(value, endTime){
 		value = this._fromUnits(value);
-		value = Math.max(0.00001, value);
+		value = Math.max(this._minOutput, value);
 		this._value.exponentialRampToValueAtTime(value, this.toSeconds(endTime));
 		return this;
 	};
 
 	/**
 	 *  Schedules an exponential continuous change in parameter value from 
-	 *  the current time and current value to the given value.
+	 *  the current time and current value to the given value over the 
+	 *  duration of the rampTime.
 	 *  
-	 *  @param  {number} value   
+	 *  @param  {number} value   The value to ramp to.
 	 *  @param  {Time} rampTime the time that it takes the 
 	 *                               value to ramp from it's current value
 	 *  @returns {Tone.Signal} this
 	 *  @example
 	 * //exponentially ramp to the value 2 over 4 seconds. 
-	 * signal.exponentialRampToValueNow(2, 4);
+	 * signal.exponentialRampToValue(2, 4);
 	 */
-	Tone.Signal.prototype.exponentialRampToValueNow = function(value, rampTime){
+	Tone.Signal.prototype.exponentialRampToValue = function(value, rampTime){
 		var now = this.now();
 		// exponentialRampToValueAt cannot ever ramp from 0, apparently.
 		// More info: https://bugzilla.mozilla.org/show_bug.cgi?id=1125600#c2
 		var currentVal = this.value;
-		this.setValueAtTime(Math.max(currentVal, 0.0001), now);
+		this.setValueAtTime(Math.max(currentVal, this._minOutput), now);
 		this.exponentialRampToValueAtTime(value, now + this.toSeconds(rampTime));
 		return this;
 	};
 
 	/**
 	 *  Schedules an linear continuous change in parameter value from 
-	 *  the current time and current value to the given value at the given time.
+	 *  the current time and current value to the given value over the 
+	 *  duration of the rampTime.
 	 *  
-	 *  @param  {number} value   
+	 *  @param  {number} value   The value to ramp to.
 	 *  @param  {Time} rampTime the time that it takes the 
 	 *                               value to ramp from it's current value
 	 *  @returns {Tone.Signal} this
 	 *  @example
 	 * //linearly ramp to the value 4 over 3 seconds. 
-	 * signal.linearRampToValueNow(4, 3);
+	 * signal.linearRampToValue(4, 3);
 	 */
-	Tone.Signal.prototype.linearRampToValueNow = function(value, rampTime){
+	Tone.Signal.prototype.linearRampToValue = function(value, rampTime){
 		var now = this.now();
-		this.setCurrentValueNow(now);
+		this.setRampPoint(now);
 		this.linearRampToValueAtTime(value, now + this.toSeconds(rampTime));
 		return this;
 	};
@@ -264,14 +272,15 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	 *  @param {number} value        
 	 *  @param {Time} startTime    
 	 *  @param {number} timeConstant 
-	 *  @returns {Tone.Signal} this
+	 *  @returns {Tone.Signal} this 
 	 */
 	Tone.Signal.prototype.setTargetAtTime = function(value, startTime, timeConstant){
 		value = this._fromUnits(value);
 		// The value will never be able to approach without timeConstant > 0.
 		// http://www.w3.org/TR/webaudio/#dfn-setTargetAtTime, where the equation
 		// is described. 0 results in a division by 0.
-		timeConstant = Math.max(0.00001, timeConstant);
+		value = Math.max(this._minOutput, value);
+		timeConstant = Math.max(this._minOutput, timeConstant);
 		this._value.setTargetAtTime(value, this.toSeconds(startTime), timeConstant);
 		return this;
 	};
@@ -322,9 +331,9 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	Tone.Signal.prototype.rampTo = function(value, rampTime){
 		rampTime = this.defaultArg(rampTime, 0);
 		if (this.units === Tone.Type.Frequency || this.units === Tone.Type.BPM){
-			this.exponentialRampToValueNow(value, rampTime);
+			this.exponentialRampToValue(value, rampTime);
 		} else {
-			this.linearRampToValueNow(value, rampTime);
+			this.linearRampToValue(value, rampTime);
 		}
 		return this;
 	};
@@ -345,21 +354,11 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	///////////////////////////////////////////////////////////////////////////
 
 	/**
-	 *  the constant signal generator
+	 *  Generates a constant output of 1.
 	 *  @static
 	 *  @private
 	 *  @const
-	 *  @type {OscillatorNode}
-	 */
-	Tone.Signal._generator = null;
-
-	/**
-	 *  the signal generator waveshaper. makes the incoming signal
-	 *  only output 1 for all inputs.
-	 *  @static
-	 *  @private
-	 *  @const
-	 *  @type {Tone.WaveShaper}
+	 *  @type {AudioBufferSourceNode}
 	 */
 	Tone.Signal._constant = null;
 
@@ -367,11 +366,18 @@ define(["Tone/core/Tone", "Tone/signal/WaveShaper"], function(Tone){
 	 *  initializer function
 	 */
 	Tone._initAudioContext(function(audioContext){
-		Tone.Signal._generator = audioContext.createOscillator();
-		Tone.Signal._constant = new Tone.WaveShaper([1,1]);
-		Tone.Signal._generator.connect(Tone.Signal._constant);
-		Tone.Signal._generator.start(0);
-		Tone.Signal._generator.noGC();
+		var buffer = audioContext.createBuffer(1, 128, audioContext.sampleRate);
+		var arr = buffer.getChannelData(0);
+		for (var i = 0; i < arr.length; i++){
+			arr[i] = 1;
+		}
+		Tone.Signal._constant = audioContext.createBufferSource();
+		Tone.Signal._constant.channelCount = 1;
+		Tone.Signal._constant.channelCountMode = "explicit";
+		Tone.Signal._constant.buffer = buffer;
+		Tone.Signal._constant.loop = true;
+		Tone.Signal._constant.start(0);
+		Tone.Signal._constant.noGC();
 	});
 
 	return Tone.Signal;
