@@ -13,14 +13,14 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	 *  @example
 	 * //initialize the noise and start
 	 * var noise = new Tone.Noise("pink").start();
-	 * 
+	 *
 	 * //make an autofilter to shape the noise
 	 * var autoFilter = new Tone.AutoFilter({
 	 * 	"frequency" : "8m", 
 	 * 	"min" : 800, 
 	 * 	"max" : 15000
 	 * }).connect(Tone.Master);
-	 * 
+	 *
 	 * //connect the noise
 	 * noise.connect(autoFilter);
 	 * //start the autofilter LFO
@@ -45,10 +45,11 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		this._buffer = null;
 
 		/**
-		 *  The playback rate, used for pitching the noise
-		 *  @type {number}
+		 *  The playback control.
+		 *  @type {Number}
+		 *  @signal
 		 */
-		this._playbackRate = 1;
+		this.playbackRate = new Tone.Signal(options.playbackRate);
 
 		this.type = options.type;
 	};
@@ -64,10 +65,11 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	 */
 	Tone.Noise.defaults = {
 		"type" : "white",
+		"playbackRate": 1,
 	};
 
 	/**
-	 * The type of the noise. Can be "white", "brown", or "pink". 
+	 * The type of the noise. Can be "white", "brown", or "pink".
 	 * @memberOf Tone.Noise#
 	 * @type {string}
 	 * @name type
@@ -83,20 +85,20 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 			} else if (this._buffer === _pinkNoise){
 				return "pink";
 			}
-		}, 
+		},
 		set : function(type){
 			if (this.type !== type){
 				switch (type){
-					case "white" : 
+					case "white" :
 						this._buffer = _whiteNoise;
 						break;
-					case "pink" : 
+					case "pink" :
 						this._buffer = _pinkNoise;
 						break;
-					case "brown" : 
+					case "brown" :
 						this._buffer = _brownNoise;
 						break;
-					default : 
+					default :
 						this._buffer = _whiteNoise;
 				}
 				//if it's playing, stop and restart it
@@ -112,25 +114,6 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	});
 
 	/**
-	 * The playback speed. 1 is normal speed.
-	 *
-	 * @memberOf Tone.Noise#
-	 * @type {number}
-	 * @name playbackRate
-	 */
-	Object.defineProperty(Tone.Noise.prototype, "playbackRate", {
-		get : function(){
-			return this._playbackRate;
-		},
-		set : function(rate){
-			this._playbackRate = rate;
-			if (this._source) {
-				this._source.playbackRate.value = rate;
-			}
-		}
-	});
-
-	/**
 	 *  internal start method
 	 *
 	 *  @param {Time} time
@@ -141,6 +124,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		this._source.buffer = this._buffer;
 		this._source.loop = true;
 		this.connectSeries(this._source, this.output);
+		this.playbackRate.connect(this._source.playbackRate);
 		this._source.start(this.toSeconds(time));
 		this._source.onended = this.onended;
 	};
