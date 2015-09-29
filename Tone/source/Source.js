@@ -1,16 +1,30 @@
 define(["Tone/core/Tone", "Tone/core/Transport", "Tone/component/Volume", 
-	"Tone/core/Types", "Tone/core/TimelineState", "Tone/signal/Signal"], 
+	"Tone/core/Type", "Tone/core/TimelineState", "Tone/signal/Signal"], 
 function(Tone){
 
 	"use strict";
 
 	/**
 	 *  @class  Base class for sources. Sources have start/stop methods
-	 *          and the ability to be synced to the
-	 *          start/stop of Tone.Transport.
+	 *          and the ability to be synced to the 
+	 *          start/stop of Tone.Transport. 
 	 *
 	 *  @constructor
 	 *  @extends {Tone}
+	 *  @example
+	 * //Multiple state change events can be chained together,
+	 * //but must be set in the correct order and with ascending times
+	 * 
+	 * // OK
+	 * state.start().stop("+0.2");
+	 * // AND
+	 * state.start().stop("+0.2").start("+0.4").stop("+0.7")
+	 *
+	 * // BAD
+	 * state.stop("+0.2").start();
+	 * // OR
+	 * state.start("+0.3").stop("+0.2");
+	 * 
 	 */
 	Tone.Source = function(options){
 		//Sources only have an output and no input
@@ -47,21 +61,18 @@ function(Tone){
 		 *  @type {Function}
 		 *  @private
 		 */
-		this._bindedStart = this.start.bind(this);
+		this._syncStart = function(time, offset){
+			time = this.toSeconds(time);
+			time += this.toSeconds(this._startDelay);
+			this.start(time, offset);
+		}.bind(this);
 
 		/**
 		 *  The synced `stop` callback function from the transport
 		 *  @type {Function}
 		 *  @private
 		 */
-		this._bindedStop = this.stop.bind(this);
-
-		/**
-		 *  If the source is synced to the transport or not
-		 *  @type {Boolean}
-		 *  @private
-		 */
-		this._isSynced = false;
+		this._syncStop = this.stop.bind(this);
 
 		/**
 		 *  The offset from the start of the Transport `start`
@@ -119,9 +130,6 @@ function(Tone){
 		//};
 	Tone.Source.prototype.start = function(time){
 		time = this.toSeconds(time);
-		if (this._isSynced){
-			time += this.toSeconds(this._startDelay);
-		}
 		if (this._state.getStateAtTime(time) !== Tone.State.Started || this.retrigger){
 			this._state.setStateAtTime(Tone.State.Started, time);
 			if (this._start){
@@ -167,7 +175,6 @@ function(Tone){
 		return this;
 	};
 
-
 	/**
 	 *  Sync the source to the Transport so that when the transport
 	 *  is started, this source is started and when the transport is stopped
@@ -183,10 +190,9 @@ function(Tone){
 	 * Tone.Transport.start();
 	 */
 	Tone.Source.prototype.sync = function(delay){
-		this._isSynced = true;
 		this._startDelay = this.defaultArg(delay, 0);
-		Tone.Transport.on("start", this._bindedStart);
-		Tone.Transport.on("stop pause", this._bindedStop);
+		Tone.Transport.on("start", this._syncStart);
+		Tone.Transport.on("stop pause", this._syncStop);
 		return this;
 	};
 
@@ -196,9 +202,8 @@ function(Tone){
 	 */
 	Tone.Source.prototype.unsync = function(){
 		this._startDelay = 0;
-		this._isSynced = false;
-		Tone.Transport.off("start", this._bindedStart);
-		Tone.Transport.off("stop pause", this._bindedStop);
+		Tone.Transport.off("start", this._syncStart);
+		Tone.Transport.off("stop pause", this._syncStop);
 		return this;
 	};
 
@@ -216,6 +221,8 @@ function(Tone){
 		this.volume = null;
 		this._state.dispose();
 		this._state = null;
+		this._syncStart = null;
+		this._syncStart = null;
 	};
 
 	return Tone.Source;
