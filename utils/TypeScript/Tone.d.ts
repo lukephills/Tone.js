@@ -552,11 +552,22 @@ declare module Tone {
     }
 
     var Microphone: {
+        new(): Tone.Microphone;
+    };
+
+    interface Microphone extends Tone.ExternalInput {}
+
+    var ExternalInput: {
         new(inputNum?: number): Tone.Microphone;
     };
 
-    interface Microphone extends Tone.Source {
+    interface ExternalInput extends Tone.Source {
+        inputNum: number;
+        sources: any[];
+        close(): Tone.ExternalInput;
         dispose(): Tone.Microphone;
+        getSources(callback: (sources?: any[]) => any): Tone.ExternalInput;
+        open(callback: (error?: any) => any): Tone.ExternalInput;
     }
 
     var MidSideEffect : {
