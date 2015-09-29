@@ -977,12 +977,12 @@ declare module Tone {
         value: any; //Tone.Time | Tone.Frequency | number;
         cancelScheduledValues(startTime: Tone.Time): Tone.Signal;
         dispose(): Tone.Signal;
+        exponentialRampToValue(value: number, rampTime: Tone.Time): Tone.Signal;
         exponentialRampToValueAtTime(value: number, endTime: Tone.Time): Tone.Signal;
-        exponentialRampToValueNow(value: number, rampTime: Tone.Time): Tone.Signal;
         linearRampToValueAtTime(value: number, endTime: Tone.Time): Tone.Signal;
-        linearRampToValueNow(value: number, rampTime: Tone.Time): Tone.Signal;
+        linearRampToValue(value: number, rampTime: Tone.Time): Tone.Signal;
         rampTo(value: number, rampTime: Tone.Time): Tone.Signal;
-        setCurrentValueNow(now?: number): Tone.Signal;
+        setRampPoint(now?: number): Tone.Signal;
         setTargetAtTime(value: number, startTime: Tone.Time, timeConstant: number): Tone.Signal;
         setValueAtTime(value: number, time: Tone.Time): Tone.Signal;
         setValueCurveAtTime(values: number[], startTime: Tone.Time, duration: Tone.Time): Tone.Signal;
