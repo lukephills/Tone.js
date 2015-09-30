@@ -47,9 +47,9 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
 
             /**
              *  The amplitude envelope.
-             *  @type {Tone.AmplitudeEnvelope}
+             *  @type {Tone.SimpleEnvelope}
              */
-            this.envelope = new Tone.AmplitudeEnvelope(options.envelope);
+            this.envelope = new Tone.SimpleEnvelope(options.envelope);
 
             /**
              *  The name of the current sample.
