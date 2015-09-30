@@ -919,12 +919,30 @@ declare module Tone {
         triggerRelease(time?: Tone.Time): Tone.Sampler;
     }
 
+    var SimpleEnvelope: {
+        new(attack: any, decay?: Tone.Time, sustain?: number, release?: Tone.Time): Tone.SimpleEnvelope;
+    };
+
+    interface SimpleEnvelope extends Tone {
+        attack: Tone.Time;
+        attackCurve: string;
+        decay: Tone.Time;
+        decayCurve: string;
+        release: Tone.Time;
+        releaseCurve: string;
+        sustain: number;
+        dispose(): Tone.SimpleEnvelope;
+        triggerAttack(time?: number, velocity?: number): Tone.SimpleEnvelope;
+        triggerAttackRelease(duration: Tone.Time, time?: number, velocity?: number): Tone.SimpleEnvelope;
+        triggerRelease(time?: number): Tone.SimpleEnvelope;
+    }
+
     var Simpler: {
         new(urls?: any, options?: Object): Tone.Simpler;
     };
 
     interface Simpler extends Tone.Instrument {
-        envelope: Tone.Envelope;
+        envelope: Tone.SimpleEnvelope;
         player: Tone.Player;
         dispose(): Tone.Simpler;
         triggerAttack(time?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time, velocity?: number): Tone.Simpler;
