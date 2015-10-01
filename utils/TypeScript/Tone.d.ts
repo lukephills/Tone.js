@@ -942,7 +942,7 @@ declare module Tone {
     };
 
     interface Simpler extends Tone.Instrument {
-        envelope: Tone.SimpleEnvelope;
+        envelope: Tone.AmplitudeEnvelope;
         player: Tone.Player;
         dispose(): Tone.Simpler;
         triggerAttack(time?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time, velocity?: number): Tone.Simpler;
