@@ -26,7 +26,7 @@ define(["Test", "Tone/core/Transport", "Tone/core/Tone"], function (Test, Transp
 				expect(Tone.Transport.bpm.value).to.be.closeTo(125, 0.001);
 				//reset the bpm
 				Tone.Transport.bpm.value = 120;
-				expect(Tone.Transport.bpm._value.value).to.equal(2 * Tone.Transport.PPQ);
+				expect(Tone.Transport.bpm._param.value).to.equal(2 * Tone.Transport.PPQ);
 			});
 
 			it("can get and set timeSignature as both an array or number", function(){
@@ -79,6 +79,38 @@ define(["Test", "Tone/core/Transport", "Tone/core/Tone"], function (Test, Transp
 
 		});
 
+		context("Quantization", function(){
+
+			afterEach(resetTransport);
+
+			it("returns the time quantized to the next subdivision", function(){
+				expect(Tone.Transport.quantize(1.1, 0.5)).to.be.closeTo(1.5, 0.01);
+				expect(Tone.Transport.quantize("1m", "2m")).to.be.closeTo(Tone.Transport.toSeconds("2m"), 0.01);
+				expect(Tone.Transport.quantize(2.3, 0.5)).to.be.closeTo(2.5, 0.01);
+				expect(Tone.Transport.quantize("4n", "8n")).to.be.closeTo(Tone.Transport.toSeconds("4n"), 0.01);
+				expect(Tone.Transport.quantize(0, 4)).to.be.closeTo(0, 0.01);
+			});
+
+			it("returns now relative times with the Transport stopped", function(){
+				var now = Tone.Transport.now();
+				expect(Tone.Transport.quantize(undefined, "1m")).to.be.closeTo(now, 0.01);
+				expect(Tone.Transport.quantize("+1m", "1m")).to.be.closeTo(now + Tone.Transport.toSeconds("1m"), 0.01);
+			});
+
+			it("returns the time of the next subdivision when the transport is started", function(done){
+				var now = Tone.Transport.now() + 0.1;
+				Tone.Transport.start(now);
+				setTimeout(function(){
+					// console.log((now + 0.5) - Tone.Transport.quantize(undefined, 0.5));
+					expect(Tone.Transport.quantize(undefined, 0.5)).to.be.closeTo(now + 0.5, 0.01);
+					expect(Tone.Transport.quantize("+1.1", 0.5)).to.be.closeTo(now + 1.5, 0.01);
+					expect(Tone.Transport.quantize("+0.4", 1)).to.be.closeTo(now + 1, 0.01);
+					expect(Tone.Transport.quantize("+1.1", 1)).to.be.closeTo(now + 2, 0.01);
+					done();
+				}, 200);
+			});
+		});
+
 		context("PPQ", function(){
 
 			afterEach(resetTransport);
@@ -121,6 +153,16 @@ define(["Test", "Tone/core/Transport", "Tone/core/Tone"], function (Test, Transp
 				expect(Tone.Transport.position).to.equal("3:0:0");
 				Tone.Transport.position = "0:0";
 				expect(Tone.Transport.position).to.equal("0:0:0");
+			});
+
+			it ("can get the progress of the loop", function(){
+				Tone.Transport.setLoopPoints(0, "1m").start();
+				Tone.Transport.loop = true;
+				expect(Tone.Transport.progress).to.be.equal(0);
+				Tone.Transport.position = "2n";
+				expect(Tone.Transport.progress).to.be.closeTo(0.5, 0.001);
+				Tone.Transport.position = "2n + 4n";
+				expect(Tone.Transport.progress).to.be.closeTo(0.75, 0.001);
 			});
 
 		});

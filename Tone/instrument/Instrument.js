@@ -1,4 +1,4 @@
-define(["Tone/core/Tone", "Tone/core/Master", "Tone/core/Type"], function(Tone){
+define(["Tone/core/Tone", "Tone/core/Type"], function(Tone){
 
 	"use strict";
 
@@ -14,7 +14,7 @@ define(["Tone/core/Tone", "Tone/core/Master", "Tone/core/Type"], function(Tone){
 		options = this.defaultArg(options, Tone.Instrument.defaults);
 
 		/**
-		 *  The volume node. 
+		 *  The output and volume triming node
 		 *  @type  {Tone.Volume}
 		 *  @private
 		 */

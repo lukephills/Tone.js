@@ -81,10 +81,11 @@ function(Tone){
 
 		/**
 		 *  the units of the LFO (used for converting)
-		 *  @type {string} 
+		 *  @type {Tone.Type} 
 		 *  @private
 		 */
 		this._units = Tone.Type.Default;
+		this.units = options.units;
 
 		//connect it up
 		this._oscillator.chain(this._a2g, this._scaler);
@@ -108,7 +109,8 @@ function(Tone){
 		"max" : 1,
 		"phase" : 0,
 		"frequency" : "4n",
-		"amplitude" : 1
+		"amplitude" : 1,
+		"units" : Tone.Type.Default
 	};
 
 	/**
@@ -251,7 +253,21 @@ function(Tone){
 	});
 
 	/**
-	 *  Connect the output of a ToneNode to an AudioParam, AudioNode, or Tone Node. 
+	 *  Returns the playback state of the source, either "started" or "stopped".
+	 *  @type {Tone.State}
+	 *  @readOnly
+	 *  @memberOf Tone.LFO#
+	 *  @name state
+	 */
+	Object.defineProperty(Tone.LFO.prototype, "state", {
+		get : function(){
+			return this._oscillator.state;
+		}
+	});
+
+	/**
+	 *  Connect the output of the LFO to an AudioParam, AudioNode, or Tone Node. 
+	 *  Tone.LFO will automatically convert to the destination units of the 
 	 *  will get the units from the connected node.
 	 *  @param  {Tone | AudioParam | AudioNode} node 
 	 *  @param {number} [outputNum=0] optionally which output to connect from
@@ -260,7 +276,7 @@ function(Tone){
 	 *  @private
 	 */
 	Tone.LFO.prototype.connect = function(node){
-		if (node.constructor === Tone.Signal){
+		if (node.constructor === Tone.Signal || node.constructor === Tone.Param || node.constructor === Tone.TimelineSignal){
 			this.convert = node.convert;
 			this.units = node.units;
 		}
@@ -269,20 +285,20 @@ function(Tone){
 	};
 
 	/**
-	 *  private method borroed from Signal converts 
+	 *  private method borrowed from Param converts 
 	 *  units from their destination value
 	 *  @function
 	 *  @private
 	 */
-	Tone.LFO.prototype._fromUnits = Tone.Signal.prototype._fromUnits;
+	Tone.LFO.prototype._fromUnits = Tone.Param.prototype._fromUnits;
 
 	/**
-	 *  private method borroed from Signal converts 
+	 *  private method borrowed from Param converts 
 	 *  units to their destination value
 	 *  @function
 	 *  @private
 	 */
-	Tone.LFO.prototype._toUnits = Tone.Signal.prototype._toUnits;
+	Tone.LFO.prototype._toUnits = Tone.Param.prototype._toUnits;
 
 	/**
 	 *  disconnect and dispose

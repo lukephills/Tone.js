@@ -33,7 +33,7 @@ function(Tone){
 		options = this.defaultArg(options, Tone.Source.defaults);
 
 		/**
-		 *  The volume node. 
+		 *  The output volume node
 		 *  @type  {Tone.Volume}
 		 *  @private
 		 */
@@ -82,8 +82,8 @@ function(Tone){
 		this._startDelay = 0;
 
 		//make the output explicitly stereo
-		this.output.channelCount = 2;
-		this.output.channelCountMode = "explicit";
+		this._volume.output.output.channelCount = 2;
+		this._volume.output.output.channelCountMode = "explicit";
 	};
 
 	Tone.extend(Tone.Source);
@@ -215,9 +215,9 @@ function(Tone){
 		this.stop();
 		Tone.prototype.dispose.call(this);
 		this.unsync();
+		this._writable("volume");
 		this._volume.dispose();
 		this._volume = null;
-		this._writable("volume");
 		this.volume = null;
 		this._state.dispose();
 		this._state = null;

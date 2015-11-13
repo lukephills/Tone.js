@@ -1,13 +1,22 @@
 define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function (Tone) {
 
+	"use strict";
+
 	/**
 	 *  @class A signal which adds the method getValueAtTime. 
 	 *         Code and inspiration from https://github.com/jsantell/web-audio-automation-timeline
+	 *  @extends {Tone.Param}
+	 *  @param {Number=} value The initial value of the signal
+	 *  @param {String=} units The conversion units of the signal.
 	 */
 	Tone.TimelineSignal = function(){
 
-		//extend Tone.Signal
-		Tone.Signal.apply(this, arguments);
+		var options = this.optionsObject(arguments, ["value", "units"], Tone.Signal.defaults);
+
+		//constructors
+		Tone.Signal.apply(this, options);
+		options.param = this._param;
+		Tone.Param.call(this, options);
 
 		/**
 		 *  The scheduled events
@@ -21,10 +30,10 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 		 *  @type {Number}
 		 *  @private
 		 */
-		this._initial = this._value.value;
+		this._initial = this._fromUnits(this._param.value);
 	};
 
-	Tone.extend(Tone.TimelineSignal, Tone.Signal);
+	Tone.extend(Tone.TimelineSignal, Tone.Param);
 
 	/**
 	 *  The event types of a schedulable signal.
@@ -45,12 +54,12 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 */
 	Object.defineProperty(Tone.TimelineSignal.prototype, "value", {
 		get : function(){
-			return this._toUnits(this._value.value);
+			return this._toUnits(this._param.value);
 		},
 		set : function(value){
 			var convertedVal = this._fromUnits(value);
 			this._initial = convertedVal;
-			this._value.value = convertedVal;
+			this._param.value = convertedVal;
 		}
 	});
 
@@ -68,15 +77,15 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 * freq.setValueAtTime("G4", "+1");
 	 */
 	Tone.TimelineSignal.prototype.setValueAtTime = function (value, startTime) {
-		var unitValue = this._fromUnits(value);
+		value = this._fromUnits(value);
 		startTime = this.toSeconds(startTime);
 		this._events.addEvent({
 			"type" : Tone.TimelineSignal.Type.Set,
-			"value" : unitValue,
+			"value" : value,
 			"time" : startTime
 		});
 		//invoke the original event
-		Tone.Signal.prototype.setValueAtTime.apply(this, arguments);
+		this._param.setValueAtTime(value, startTime);
 		return this;
 	};
 
@@ -89,14 +98,14 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  @returns {Tone.TimelineSignal} this
 	 */
 	Tone.TimelineSignal.prototype.linearRampToValueAtTime = function (value, endTime) {
-		var unitValue = this._fromUnits(value);
+		value = this._fromUnits(value);
 		endTime = this.toSeconds(endTime);
 		this._events.addEvent({
 			"type" : Tone.TimelineSignal.Type.Linear,
-			"value" : unitValue,
+			"value" : value,
 			"time" : endTime
 		});
-		Tone.Signal.prototype.linearRampToValueAtTime.apply(this, arguments);
+		this._param.linearRampToValueAtTime(value, endTime);
 		return this;
 	};
 
@@ -109,15 +118,15 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  @returns {Tone.TimelineSignal} this
 	 */
 	Tone.TimelineSignal.prototype.exponentialRampToValueAtTime = function (value, endTime) {
-		var unitValue = this._fromUnits(value);
-		unitValue = Math.max(this._minOutput, unitValue);
+		value = this._fromUnits(value);
+		value = Math.max(this._minOutput, value);
 		endTime = this.toSeconds(endTime);
 		this._events.addEvent({
 			"type" : Tone.TimelineSignal.Type.Exponential,
-			"value" : unitValue,
+			"value" : value,
 			"time" : endTime
 		});
-		Tone.Signal.prototype.exponentialRampToValueAtTime.apply(this, arguments);
+		this._param.exponentialRampToValueAtTime(value, endTime);
 		return this;
 	};
 
@@ -130,16 +139,16 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  @returns {Tone.TimelineSignal} this 
 	 */
 	Tone.TimelineSignal.prototype.setTargetAtTime = function (value, startTime, timeConstant) {
-		var unitValue = this._fromUnits(value);
-		unitValue = Math.max(this._minOutput, unitValue);
+		value = this._fromUnits(value);
+		value = Math.max(this._minOutput, value);
 		startTime = this.toSeconds(startTime);
 		this._events.addEvent({
 			"type" : Tone.TimelineSignal.Type.Target,
-			"value" : unitValue,
+			"value" : value,
 			"time" : startTime,
 			"constant" : timeConstant
 		});
-		Tone.Signal.prototype.setTargetAtTime.apply(this, arguments);
+		this._param.setTargetAtTime(value, startTime, timeConstant);
 		return this;
 	};
 
@@ -152,7 +161,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 */
 	Tone.TimelineSignal.prototype.cancelScheduledValues = function (after) {
 		this._events.clear(after);
-		Tone.Signal.prototype.cancelScheduledValues.apply(this, arguments);
+		this._param.cancelScheduledValues(this.toSeconds(after));
 		return this;
 	};
 
@@ -177,6 +186,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  @param {Time} start The beginning anchor point to do the linear ramp
 	 *  @param {Time} finish The ending anchor point by which the value of
 	 *                       the signal will equal the given value.
+	 *  @returns {Tone.TimelineSignal} this
 	 */
 	Tone.TimelineSignal.prototype.linearRampToValueBetween = function (value, start, finish) {
 		this.setRampPoint(start);
@@ -190,6 +200,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  @param {Time} start The beginning anchor point to do the exponential ramp
 	 *  @param {Time} finish The ending anchor point by which the value of
 	 *                       the signal will equal the given value.
+	 *  @returns {Tone.TimelineSignal} this
 	 */
 	Tone.TimelineSignal.prototype.exponentialRampToValueBetween = function (value, start, finish) {
 		this.setRampPoint(start);
@@ -215,6 +226,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 *  The event after the given time
 	 *  @param  {Number}  time  The time to query.
 	 *  @return  {Object}  The next event after the given time
+	 *  @private
 	 */
 	Tone.TimelineSignal.prototype._searchAfter = function(time){
 		return this._events.getEventAfter(time);
@@ -249,7 +261,23 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 		} else {
 			return before.value;
 		}
+		return this._param.getValueAtTime(time);
 	};
+
+	/**
+	 *  When signals connect to other signals or AudioParams, 
+	 *  they take over the output value of that signal or AudioParam. 
+	 *  For all other nodes, the behavior is the same as a default <code>connect</code>. 
+	 *
+	 *  @override
+	 *  @param {AudioParam|AudioNode|Tone.Signal|Tone} node 
+	 *  @param {number} [outputNumber=0] The output number to connect from.
+	 *  @param {number} [inputNumber=0] The input number to connect to.
+	 *  @returns {Tone.TimelineSignal} this
+	 *  @method
+	 */
+	Tone.TimelineSignal.prototype.connect = Tone.SignalBase.prototype.connect;
+
 
 	///////////////////////////////////////////////////////////////////////////
 	//	AUTOMATION CURVE CALCULATIONS
@@ -287,6 +315,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	 */
 	Tone.TimelineSignal.prototype.dispose = function(){
 		Tone.Signal.prototype.dispose.call(this);
+		Tone.Param.prototype.dispose.call(this);
 		this._events.dispose();
 		this._events = null;
 	};

@@ -201,6 +201,14 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 
 		context("Tone.toSeconds", function(){
 
+			afterEach(function(done){
+				Tone.Transport.stop();
+				Tone.Transport.bpm.value = 120;;
+				setTimeout(function(){
+					done();
+				}, 100);
+			});
+
 			it("correctly infers type", function(){
 				Transport.stop();
 				Transport.bpm.value = 120;
@@ -236,6 +244,29 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 				expect(tone.toSeconds("1+2+3")).to.equal(6);
 				expect(tone.toSeconds("2*1:2 - 1m")).to.equal(4);
 				expect(tone.toSeconds("(1 + 2) / 4n")).to.equal(6);
+				expect(tone.toSeconds("((1) + 2)*4n + 1:0:0")).to.equal(3.5);
+			});
+
+			it("can quantize values", function(){
+				expect(tone.toSeconds("4n @ 2n")).to.be.closeTo(1, 0.01);
+				expect(tone.toSeconds("2 @ 1.4")).to.be.closeTo(2.8, 0.01);
+				expect(tone.toSeconds("1 + 4n @ 4n")).to.be.closeTo(1.5, 0.01);
+				expect(tone.toSeconds("(1 + 4n) @ (4n + 1)")).to.be.closeTo(1.5, 0.01);
+				expect(tone.toSeconds("(0.4 + 4n) @ (4n + 1)")).to.be.closeTo(1.5, 0.01);
+				expect(tone.toSeconds("(0.4 @ 4n) + (2.1 @ 2n)")).to.be.closeTo(3.5, 0.01);
+			});
+
+			it("can get the next subdivison when the transport is started", function(done){
+				var now = tone.now() + 0.1;
+				Tone.Transport.start(now);
+				setTimeout(function(){
+					expect(tone.toSeconds("@8m")).to.be.closeTo(now + 16, 0.01);
+					expect(tone.toSeconds("@1m + 4n")).to.be.closeTo(now + 2.5, 0.01);
+					expect(tone.toSeconds("+1.1@4n")).to.be.closeTo(now + 1.5, 0.01);
+					expect(tone.toSeconds("(@4n) + 2n")).to.be.closeTo(now + 1.5, 0.01);
+					expect(tone.toSeconds("(+ 0.4 + 0.7 @4n) + 2n")).to.be.closeTo(now + 2.5, 0.01);
+					done();
+				}, 300);
 			});
 		});
 
@@ -243,10 +274,11 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 
 			it("converts ticks to seconds", function(){
 				var ppq = Transport.PPQ;
-				Transport.bpm.value = 120;
+				var bpm = 120;
+				Transport.bpm.value = bpm;
 				Transport.timeSignature = 4;
-				expect(tone.ticksToSeconds("1i")).to.equal(tone.notationToSeconds("4n") / ppq);
-				expect(tone.ticksToSeconds("100i")).to.equal(100 * tone.notationToSeconds("4n") / ppq);
+				expect(tone.ticksToSeconds("1i")).to.be.closeTo((60/bpm) / ppq, 0.01);
+				expect(tone.ticksToSeconds("100i")).to.be.closeTo(100 * (60/bpm) / ppq, 0.01);
 			});
 		});
 
@@ -283,6 +315,7 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 				Transport.timeSignature = 4;
 				expect(tone.toNotation("4n")).to.equal("4n");
 				expect(tone.toNotation(1.5)).to.equal("2n + 4n");
+				expect(tone.toNotation(0)).to.equal("0");
 				expect(tone.toNotation("1:2:3")).to.equal("1m + 2n + 8n + 16n");
 			});
 
@@ -294,7 +327,7 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 
 		});
 
-		context("Tone.getType", function(){
+		context("Test Types", function(){
 
 			it("can recognize frequency format", function(){
 				expect(tone.isFrequency("12hz")).to.be.true;
@@ -359,17 +392,6 @@ define(["Test", "Tone/core/Type", "Tone/core/Transport", "deps/teoria"], functio
 				expect(tone.isTransportTime("a2:0")).to.be.false;
 				expect(tone.isTransportTime("2:0a")).to.be.false;
 				expect(tone.isTransportTime("2")).to.be.false;
-			});
-
-			it("can correctly infer the type", function(){
-				expect(tone.getType("12hz")).to.equal(Tone.Type.Frequency);
-				expect(tone.getType("1:0:0")).to.equal(Tone.Type.TransportTime);
-				expect(tone.getType("1n")).to.equal(Tone.Type.Notation);
-				expect(tone.getType("C4")).to.equal(Tone.Type.Note);
-				expect(tone.getType("12i")).to.equal(Tone.Type.Ticks);
-				expect(tone.getType("asdfa")).is.undefined;
-				expect(tone.getType(12)).is.equal(Tone.Type.Default);
-				expect(tone.getType("12.0")).is.equal(Tone.Type.Default);
 			});
 		});
 	})

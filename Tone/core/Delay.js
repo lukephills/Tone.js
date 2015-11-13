@@ -1,10 +1,12 @@
-define(["Tone/core/Tone"], function (Tone) {
+define(["Tone/core/Tone", "Tone/core/Param"], function (Tone) {
+
+	"use strict";
 
 	/**
 	 *  @class Wrapper around Web Audio's native [DelayNode](http://webaudio.github.io/web-audio-api/#the-delaynode-interface). 
 	 *  @extends {Tone}
-	 *  @param {Number=} delayTime The delay applied to the incoming signal.
-	 *  @param {Number=} maxDelay The maximum delay time. 
+	 *  @param {Time=} delayTime The delay applied to the incoming signal.
+	 *  @param {Time=} maxDelay The maximum delay time. 
 	 */
 	Tone.Delay = function(){
 
@@ -15,18 +17,21 @@ define(["Tone/core/Tone"], function (Tone) {
 		 *  @type {DelayNode}
 		 *  @private
 		 */
-		this._delayNode = this.input = this.output = this.context.createDelay(options.maxDelay);
+		this._delayNode = this.input = this.output = this.context.createDelay(this.toSeconds(options.maxDelay));
 
 		/**
 		 *  The amount of time the incoming signal is
 		 *  delayed. 
-		 *  @type {Positive}
+		 *  @type {Tone.Param}
 		 *  @signal
 		 */
-		this.delayTime = this._delayNode.delayTime;
+		this.delayTime = new Tone.Param({
+			"param" : this._delayNode.delayTime,
+			"units" : Tone.Type.Time,
+			"value" : options.delayTime
+		});
 
 		this._readOnly("delayTime");
-		this.delayTime.value = options.delayTime;
 	};
 
 	Tone.extend(Tone.Delay);
@@ -40,13 +45,13 @@ define(["Tone/core/Tone"], function (Tone) {
 		"maxDelay" : 1,
 		"delayTime" : 0
 	};
-
+	
 	/**
 	 *  Clean up.
 	 *  @return  {Tone.Delay}  this
 	 */
 	Tone.Delay.prototype.dispose = function(){
-		Tone.prototype.dispose.call(this);
+		Tone.Param.prototype.dispose.call(this);
 		this._delayNode.disconnect();
 		this._delayNode = null;
 		this._writable("delayTime");

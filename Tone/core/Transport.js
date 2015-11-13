@@ -1,5 +1,5 @@
 define(["Tone/core/Tone", "Tone/core/Clock", "Tone/core/Type", "Tone/core/Timeline", 
-	"Tone/core/EventEmitter", "Tone/core/Gain", "Tone/core/IntervalTimeline"], 
+	"Tone/core/Emitter", "Tone/core/Gain", "Tone/core/IntervalTimeline"], 
 function(Tone){
 
 	"use strict";
@@ -15,7 +15,7 @@ function(Tone){
 	 *          The transport emits the events: "start", "stop", "pause", and "loop" which are
 	 *          called with the time of that event as the argument. 
 	 *
-	 *  @extends {Tone.EventEmitter}
+	 *  @extends {Tone.Emitter}
 	 *  @singleton
 	 *  @example
 	 * //repeated event every 8th note
@@ -35,7 +35,7 @@ function(Tone){
 	 */
 	Tone.Transport = function(){
 
-		Tone.EventEmitter.call(this);
+		Tone.Emitter.call(this);
 
 		///////////////////////////////////////////////////////////////////////
 		//	LOOPING
@@ -118,6 +118,14 @@ function(Tone){
 		this._scheduledEvents = {};
 
 		/**
+		 *  The events to remove from the timelines. 
+		 *  Each event is an object with an 'item' and a 'timeline'.
+		 *  @type  {Array}
+		 *  @private
+		 */
+		this._eventsToRemove = [];
+
+		/**
 		 *  The event ID counter
 		 *  @type {Number}
 		 *  @private
@@ -156,12 +164,14 @@ function(Tone){
 		//	SWING
 		//////////////////////////////////////////////////////////////////////
 
+		var swingSeconds = this.notationToSeconds(TransportConstructor.defaults.swingSubdivision, TransportConstructor.defaults.bpm, TransportConstructor.defaults.timeSignature);
+
 		/**
 		 *  The subdivision of the swing
 		 *  @type  {Ticks}
 		 *  @private
 		 */
-		this._swingTicks = this.toTicks(TransportConstructor.defaults.swingSubdivision, TransportConstructor.defaults.bpm, TransportConstructor.defaults.timeSignature);
+		this._swingTicks = (swingSeconds / (60 / TransportConstructor.defaults.bpm)) * this._ppq;
 
 		/**
 		 *  The swing amount
@@ -172,7 +182,7 @@ function(Tone){
 
 	};
 
-	Tone.extend(Tone.Transport, Tone.EventEmitter);
+	Tone.extend(Tone.Transport, Tone.Emitter);
 
 	/**
 	 *  the defaults
@@ -214,6 +224,11 @@ function(Tone){
 				this.trigger("loop", tickTime);
 			}
 		}
+		for (var i = 0; i < this._eventsToRemove.length; i++){
+			var item = this._eventsToRemove[i];
+			item.timeline.removeEvent(item.event);
+		}
+		this._eventsToRemove = [];
 		var ticks = this._clock.ticks;
 		//fire the next tick events if their time has come
 		this._timeline.forEachAtTime(ticks, function(event){
@@ -322,7 +337,7 @@ function(Tone){
 	Tone.Transport.prototype.clear = function(eventId){
 		if (this._scheduledEvents.hasOwnProperty(eventId)){
 			var item = this._scheduledEvents[eventId.toString()];
-			item.timeline.removeEvent(item.event);
+			this._eventsToRemove.push(item);
 			delete this._scheduledEvents[eventId.toString()];
 		}
 		return this;
@@ -350,16 +365,30 @@ function(Tone){
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 *  Returns the time of the next beat.
-	 *  @param  {string} [subdivision="4n"]
-	 *  @return {number} 	the time in seconds of the next subdivision
+	 *  Returns the time closest time (equal to or after the given time) that aligns 
+	 *  to the subidivision. 
+	 *  @param {Time} time The time value to quantize to the given subdivision
+	 *  @param  {String} [subdivision="4n"] The subdivision to quantize to.
+	 *  @return {Number} 	the time in seconds until the next subdivision.
+	 *  @example
+	 * Tone.Transport.bpm.value = 120;
+	 * Tone.Transport.quantize("3 * 4n", "1m"); //return 0.5
+	 * //if the clock is started, it will return a value less than 0.5
 	 */
-	Tone.Transport.prototype.nextBeat = function(subdivision){
+	Tone.Transport.prototype.quantize = function(time, subdivision){
 		subdivision = this.defaultArg(subdivision, "4n");
-		var tickNum = this.toTicks(subdivision);
-		var remainingTicks = (transportTicks % tickNum);
+		var tickTime = this.toTicks(time);
+		subdivision = this.toTicks(subdivision);
+		var remainingTicks = subdivision - (tickTime % subdivision);
+		if (remainingTicks === subdivision){
+			remainingTicks = 0;
+		}
+		var now = this.now();
+		if (this.state === Tone.State.Started){
+			now = this._clock._nextTick;
+		}
+		return this.toSeconds(time, now) + this.ticksToSeconds(remainingTicks);
 	};
-
 
 	///////////////////////////////////////////////////////////////////////////////
 	//	START/STOP/PAUSE
@@ -367,9 +396,9 @@ function(Tone){
 
 	/**
 	 *  Returns the playback state of the source, either "started", "stopped", or "paused"
-	 *  @type {String}
+	 *  @type {Tone.State}
 	 *  @readOnly
-	 *  @memberOf Tone.State#
+	 *  @memberOf Tone.Transport#
 	 *  @name state
 	 */
 	Object.defineProperty(Tone.Transport.prototype, "state", {
@@ -564,6 +593,23 @@ function(Tone){
 	});
 
 	/**
+	 *  The Transport's loop position as a normalized value. Always
+	 *  returns 0 if the transport if loop is not true. 
+	 *  @memberOf Tone.Transport#
+	 *  @name progress
+	 *  @type {NormalRange}
+	 */
+	Object.defineProperty(Tone.Transport.prototype, "progress", {
+		get : function(){
+			if (this.loop){
+				return (this.ticks - this._loopStart) / (this._loopEnd - this._loopStart);
+			} else {
+				return 0;
+			}
+		}
+	});
+
+	/**
 	 *  The transports current tick position.
 	 *  
 	 *  @memberOf Tone.Transport#
@@ -637,20 +683,20 @@ function(Tone){
 	Tone.Transport.prototype.syncSignal = function(signal, ratio){
 		if (!ratio){
 			//get the sync ratio
-			if (signal._value.value !== 0){
-				ratio = signal._value.value / this.bpm._value.value;
+			if (signal._param.value !== 0){
+				ratio = signal._param.value / this.bpm._param.value;
 			} else {
 				ratio = 0;
 			}
 		}
 		var ratioSignal = new Tone.Gain(ratio);
-		this.bpm.chain(ratioSignal, signal._value);
+		this.bpm.chain(ratioSignal, signal._param);
 		this._syncedSignals.push({
 			"ratio" : ratioSignal,
 			"signal" : signal,
-			"initial" : signal._value.value
+			"initial" : signal._param.value
 		});
-		signal._value.value = 0;
+		signal._param.value = 0;
 		return this;
 	};
 
@@ -665,7 +711,7 @@ function(Tone){
 			var syncedSignal = this._syncedSignals[i];
 			if (syncedSignal.signal === signal){
 				syncedSignal.ratio.dispose();
-				syncedSignal.signal._value.value = syncedSignal.initial;
+				syncedSignal.signal._param.value = syncedSignal.initial;
 				this._syncedSignals.splice(i, 1);
 			}
 		}
@@ -678,7 +724,7 @@ function(Tone){
 	 *  @private
 	 */
 	Tone.Transport.prototype.dispose = function(){
-		Tone.EventEmitter.prototype.dispose.call(this);
+		Tone.Emitter.prototype.dispose.call(this);
 		this._clock.dispose();
 		this._clock = null;
 		this._writable("bpm");

@@ -1,5 +1,7 @@
 define(["Tone/core/Tone", "Tone/effect/Effect", "Tone/core/Delay", "Tone/component/LFO"], function (Tone) {
 
+	"use strict";
+
 	/**
 	 *  @class A Vibrato effect composed of a Tone.Delay and a Tone.LFO. The LFO
 	 *         modulates the delayTime of the delay, causing the pitch to rise
@@ -18,7 +20,7 @@ define(["Tone/core/Tone", "Tone/effect/Effect", "Tone/core/Delay", "Tone/compone
 		 *  @type {Tone.Delay}
 		 *  @private
 		 */
-		this._delayNode = new Tone.Delay(options.maxDelay);
+		this._delayNode = new Tone.Delay(0, options.maxDelay);
 
 		/**
 		 *  The LFO used to control the vibrato

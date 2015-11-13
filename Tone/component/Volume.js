@@ -21,18 +21,14 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Gain"], function(Tone
 		 * @type {GainNode}
 		 * @private
 		 */
-		this.output = this.input = new Tone.Gain();
+		this.output = this.input = new Tone.Gain(options.volume, Tone.Type.Decibels);
 
 		/**
 		 *  The volume control in decibels. 
 		 *  @type {Decibels}
 		 *  @signal
 		 */
-		this.volume = new Tone.Signal({
-			"param" : this.output.gain, 
-			"value" : options.volume,
-			"units" : Tone.Type.Decibels
-		});
+		this.volume = this.output.gain;
 
 		this._readOnly("volume");
 	};

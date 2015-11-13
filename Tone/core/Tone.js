@@ -152,9 +152,9 @@ define(function(){
 	 * }, 3);
 	 */
 	Tone.prototype.set = function(params, value, rampTime){
-		if (typeof params === "object"){
+		if (this.isObject(params)){
 			rampTime = value;
-		} else if (typeof params === "string"){
+		} else if (this.isString(params)){
 			var tmpObj = {};
 			tmpObj[params] = value;
 			params = tmpObj;
@@ -173,7 +173,8 @@ define(function(){
 			if (isUndef(param)){
 				continue;
 			}
-			if (isFunction(Tone.Signal) && param instanceof Tone.Signal){
+			if ((Tone.Signal && param instanceof Tone.Signal) || 
+					(Tone.Param && param instanceof Tone.Param)){
 				if (param.value !== value){
 					if (isUndef(rampTime)){
 						param.value = value;
@@ -217,7 +218,7 @@ define(function(){
 	Tone.prototype.get = function(params){
 		if (isUndef(params)){
 			params = this._collectDefaults(this.constructor);
-		} else if (typeof params === "string"){
+		} else if (this.isString(params)){
 			params = [params];
 		} 
 		var ret = {};
@@ -236,9 +237,11 @@ define(function(){
 				attr = attrSplit[attrSplit.length - 1];
 			}
 			var param = parent[attr];
-			if (typeof params[attr] === "object"){
+			if (this.isObject(params[attr])){
 				subRet[attr] = param.get();
 			} else if (Tone.Signal && param instanceof Tone.Signal){
+				subRet[attr] = param.value;
+			} else if (Tone.Param && param instanceof Tone.Param){
 				subRet[attr] = param.value;
 			} else if (param instanceof AudioParam){
 				subRet[attr] = param.value;
@@ -415,7 +418,7 @@ define(function(){
 
 	/**
 	 *  connect together all of the arguments in series
-	 *  @param {...AudioParam|Tone|AudioNode}
+	 *  @param {...AudioParam|Tone|AudioNode} nodes
 	 *  @returns {Tone} this
 	 */
 	Tone.prototype.connectSeries = function(){
@@ -432,7 +435,7 @@ define(function(){
 
 	/**
 	 *  fan out the connection from the first argument to the rest of the arguments
-	 *  @param {...AudioParam|Tone|AudioNode}
+	 *  @param {...AudioParam|Tone|AudioNode} nodes
 	 *  @returns {Tone} this
 	 */
 	Tone.prototype.connectParallel = function(){
@@ -468,7 +471,7 @@ define(function(){
 
 	/**
 	 *  connect the output of this node to the rest of the nodes in parallel.
-	 *  @param {...AudioParam|Tone|AudioNode}
+	 *  @param {...AudioParam|Tone|AudioNode} nodes
 	 *  @returns {Tone} this
 	 */
 	Tone.prototype.fan = function(){
@@ -489,30 +492,28 @@ define(function(){
 	///////////////////////////////////////////////////////////////////////////
 
 	/**
-	 *  if a the given is undefined, use the fallback. 
-	 *  if both given and fallback are objects, given
-	 *  will be augmented with whatever properties it's
-	 *  missing which are in fallback
-	 *
-	 *  warning: if object is self referential, it will go into an an 
-	 *  infinite recursive loop. 
+	 *  If the `given` parameter is undefined, use the `fallback`. 
+	 *  If both `given` and `fallback` are object literals, it will
+	 *  return a deep copy which includes all of the parameters from both 
+	 *  objects. If a parameter is undefined in given, it will return
+	 *  the fallback property. 
+	 *  <br><br>
+	 *  WARNING: if object is self referential, it will go into an an 
+	 *  infinite recursive loop.
 	 *  
 	 *  @param  {*} given    
 	 *  @param  {*} fallback 
 	 *  @return {*}          
 	 */
 	Tone.prototype.defaultArg = function(given, fallback){
-		if (typeof given === "object" && 
-				typeof fallback === "object" && 
-				!Array.isArray(given) && 
-				!Array.isArray(fallback)){
+		if (this.isObject(given) && this.isObject(fallback)){
 			var ret = {};
 			//make a deep copy of the given object
 			for (var givenProp in given) {
-				ret[givenProp] = this.defaultArg(given[givenProp], given[givenProp]);
+				ret[givenProp] = this.defaultArg(fallback[givenProp], given[givenProp]);
 			}
-			for (var prop in fallback) {
-				ret[prop] = this.defaultArg(given[prop], fallback[prop]);
+			for (var fallbackProp in fallback) {
+				ret[fallbackProp] = this.defaultArg(given[fallbackProp], fallback[fallbackProp]);
 			}
 			return ret;
 		} else {
@@ -524,7 +525,7 @@ define(function(){
 	 *  returns the args as an options object with given arguments
 	 *  mapped to the names provided. 
 	 *
-	 *  if the args given is an array containing an object, it is assumed
+	 *  if the args given is an array containing only one object, it is assumed
 	 *  that that's already the options object and will just return it. 
 	 *  
 	 *  @param  {Array} values  the 'arguments' object of the function
@@ -536,7 +537,7 @@ define(function(){
 	 */
 	Tone.prototype.optionsObject = function(values, keys, defaults){
 		var options = {};
-		if (values.length === 1 && typeof values[0] === "object"){
+		if (values.length === 1 && this.isObject(values[0])){
 			options = values[0];
 		} else {
 			for (var i = 0; i < keys.length; i++){
@@ -549,6 +550,10 @@ define(function(){
 			return options;
 		}
 	};
+
+	///////////////////////////////////////////////////////////////////////////
+	// TYPE CHECKING
+	///////////////////////////////////////////////////////////////////////////
 
 	/**
 	 *  test if the arg is undefined
@@ -566,12 +571,56 @@ define(function(){
 	 */
 	Tone.prototype.isFunction = isFunction;
 
+	/**
+	 *  Test if the argument is a number.
+	 *  @param {*} arg the argument to test
+	 *  @returns {boolean} true if the arg is a number
+	 */
+	Tone.prototype.isNumber = function(arg){
+		return (typeof arg === "number");
+	};
+
+	/**
+	 *  Test if the given argument is an object literal (i.e. `{}`);
+	 *  @param {*} arg the argument to test
+	 *  @returns {boolean} true if the arg is an object literal.
+	 */
+	Tone.prototype.isObject = function(arg){
+		return (Object.prototype.toString.call(arg) === "[object Object]" && arg.constructor === Object);
+	};
+
+	/**
+	 *  Test if the argument is a boolean.
+	 *  @param {*} arg the argument to test
+	 *  @returns {boolean} true if the arg is a boolean
+	 */
+	Tone.prototype.isBoolean = function(arg){
+		return (typeof arg === "boolean");
+	};
+
+	/**
+	 *  Test if the argument is an Array
+	 *  @param {*} arg the argument to test
+	 *  @returns {boolean} true if the arg is an array
+	 */
+	Tone.prototype.isArray = function(arg){
+		return (Array.isArray(arg));
+	};
+
+	/**
+	 *  Test if the argument is a string.
+	 *  @param {*} arg the argument to test
+	 *  @returns {boolean} true if the arg is a string
+	 */
+	Tone.prototype.isString = function(arg){
+		return (typeof arg === "string");
+	};
+
  	/**
 	 *  An empty function.
 	 *  @static
 	 */
 	Tone.noOp = function(){};
-
 
 	/**
 	 *  Make the property not writable. Internal use only. 
