@@ -86,11 +86,12 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 
 
 		/**
-		 *  The playback control.
-		 *  @type {TODO}
-		 *  @signal
+		 * The playback speed of the buffer. 1 is normal speed. 
+		 * @type {Positive}
+		 * @name playbackRate
 		 */
-		this.playbackRate = new Tone.Signal(options.playbackRate);
+		this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
+		this._readOnly("playbackRate");
 
 		/**
 		 *  Enabling retrigger will allow a player to be restarted
@@ -193,8 +194,8 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 				this._state.setStateAtTime(Tone.State.Stopped, startTime + duration);
 			}
 			//and other properties
-			this._source.connect(this.output);
 			this.playbackRate.connect(this._source.playbackRate);
+			this._source.connect(this.output);
 			//start it
 			if (this._loop){
 				this._source.start(startTime, offset);
@@ -307,7 +308,6 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 	});
 
-
 	/**
 	 * The direction the buffer should play in
 	 * @memberOf Tone.Player#
@@ -335,6 +335,9 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 		this._buffer.dispose();
 		this._buffer = null;
+		this._writable("playbackRate");
+		this.playbackRate.dispose();
+		this.playbackRate = null;
 		return this;
 	};
 

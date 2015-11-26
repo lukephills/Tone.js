@@ -8,18 +8,21 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *
 	 *  @extends {Tone.Event}
 	 *  @param {Function} callback The callback to invoke on each event
-	 *  @param {Array} events the array of events to invoke
+	 *  @param {Array} events the array of events
 	 *  @example
 	 * var part = new Tone.Part(function(time, note){
+	 * 	//the notes given as the second element in the array
+	 * 	//will be passed in as the second argument
 	 * 	synth.triggerAttackRelease(note, "8n", time);
-	 * }, [[0, "C2"], ["0:2", "C3"], ["0:3:2", "G2"]]).start();
+	 * }, [[0, "C2"], ["0:2", "C3"], ["0:3:2", "G2"]]);
 	 *  @example
 	 * //use JSON as long as the object has a "time" attribute
 	 * var part = new Tone.Part(function(time, value){
+	 * 	//the value is an object which contains both the ntoe and the velocity
 	 * 	synth.triggerAttackRelease(value.note, "8n", time, value.velocity);
 	 * }, [{"time" : 0, "note" : "C3", "velocity": 0.9}, 
 	 * 	   {"time" : "0:2", "note" : "C4", "velocity": 0.5}
-	 * ]).start();
+	 * ]).start(0);
 	 */
 	Tone.Part = function(){
 
@@ -83,22 +86,21 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 		this._state = new Tone.TimelineState(Tone.State.Stopped);
 
 		/**
-		 *  An array of Objects. Each one
-		 *  contains a note object and the relative
-		 *  start time of the note.
+		 *  An array of Objects. 
 		 *  @type  {Array}
 		 *  @private
 		 */
 		this._events = [];
 
 		/**
-		 *  The callback to invoke on every note
+		 *  The callback to invoke at all the scheduled events.
 		 *  @type {Function}
 		 */
 		this.callback = options.callback;
 
 		/**
-		 * 	If the part invokes the callback
+		 *  If mute is true, the callback won't be
+		 *  invoked.
 		 *  @type {Boolean}
 		 */
 		this.mute = options.mute;
@@ -135,8 +137,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	};
 
 	/**
-	 *  Start the part at the given time. Optionally
-	 *  set an offset time.
+	 *  Start the part at the given time. 
 	 *  @param  {Time}  time    When to start the part.
 	 *  @param  {Time=}  offset  The offset from the start of the part
 	 *                           to begin playing at.
@@ -168,15 +169,19 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *  @private
 	 */
 	Tone.Part.prototype._startNote = function(event, ticks, offset){
-		var startTick = ticks + offset;
+		ticks -= offset;
 		if (this._loop){
-			var eventStartOffset = event.startOffset - this.startOffset;
-			if (eventStartOffset >= this._loopStart && eventStartOffset < this._loopEnd){
-				// startTick -= this._loopStart;
-				event.start(startTick + "i", this.startOffset + "i");
+			if (event.startOffset >= this._loopStart && event.startOffset < this._loopEnd){
+				if (event.startOffset < offset){
+					//start it on the next loop
+					ticks += this._getLoopDuration();
+				}
+				event.start(ticks + "i");
 			}
 		} else {
-			event.start(startTick + "i");
+			if (event.startOffset >= offset){
+				event.start(ticks + "i");
+			}
 		}
 	};
 
@@ -194,7 +199,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 		set : function(offset){
 			this._startOffset = offset;
 			this._forEach(function(event){
-				event.startOffset += offset;
+				event.startOffset += this._startOffset;
 			});
 		}
 	});
@@ -221,6 +226,11 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *  the given time, one will be created with that value. 
 	 *  If two events are at the same time, the first one will
 	 *  be returned.
+	 *  @example
+	 * part.at("1m"); //returns the part at the first measure
+	 *
+	 * part.at("2m", "C2"); //set the value at "2m" to C2. 
+	 * //if an event didn't exist at that time, it will be created.
 	 *  @param {Time} time the time of the event to get or set
 	 *  @param {*=} value If a value is passed in, the value of the
 	 *                    event at the given time will be set to it.
@@ -279,10 +289,11 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 		}
 		//the start offset
 		event.startOffset = time;
-		
+
 		//initialize the values
 		event.set({
-			"loopEnd" : (this._loopEnd - this._loopStart) + "i",
+			"loopEnd" : this.loopEnd,
+			"loopStart" : this.loopStart,
 			"loop" : this.loop,
 			"humanize" : this.humanize,
 			"playbackRate" : this.playbackRate,
@@ -309,7 +320,10 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	};
 
 	/**
-	 *  Remove a note from the part. 
+	 *  Remove an event from the part. Will recursively iterate
+	 *  into the sub-parts to find the event
+	 *  @param {Time} time The time of the event
+	 *  @param {*} value Optionally select only a specific event value
 	 */
 	Tone.Part.prototype.remove = function(time, value){
 		//extract the parameters
@@ -318,14 +332,19 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 			time = value.time;
 		} 
 		time = this.toTicks(time);
-		this._forEach(function(event, index){
-			if (event.startOffset === time){
-				if (this.isUndef(value) || (!this.isUndef(value) && event.value === value)){
-					this._events.splice(index, 1);
-					event.dispose();
+		for (var i = this._events.length - 1; i >= 0; i--){
+			var event = this._events[i];
+			if (event instanceof Tone.Part){
+				event.remove(time, value);
+			} else {
+				if (event.startOffset === time){
+					if (this.isUndef(value) || (!this.isUndef(value) && event.value === value)){
+						this._events.splice(i, 1);
+						event.dispose();
+					}
 				}
 			}
-		});
+		}
 		return this;
 	};
 
@@ -355,13 +374,20 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	};
 
 	/**
-	 *  Iterate over all of the notes
+	 *  Iterate over all of the events
 	 *  @param {Function} callback
+	 *  @param {Object} ctx The context
 	 *  @private
 	 */
-	Tone.Part.prototype._forEach = function(callback){
+	Tone.Part.prototype._forEach = function(callback, ctx){
+		ctx = this.defaultArg(ctx, this);
 		for (var i = this._events.length - 1; i >= 0; i--){
-			callback.call(this, this._events[i], i);
+			var e = this._events[i];
+			if (e instanceof Tone.Part){
+				e._forEach(callback, ctx);
+			} else {
+				callback.call(ctx, e);
+			}
 		}
 		return this;
 	};
@@ -384,7 +410,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *  @private
 	 */
 	Tone.Part.prototype._tick = function(time, value){
-		if (!this.mute && this._state.getStateAtTime(Tone.Transport.ticks) === Tone.State.Started){
+		if (!this.mute){
 			this.callback(time, value);
 		}
 	};
@@ -396,8 +422,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *  @private
 	 */
 	Tone.Part.prototype._testLoopBoundries = function(event){
-		var eventStartOffset = event.startOffset - this.startOffset;
-		if (eventStartOffset < this._loopStart || eventStartOffset >= this._loopEnd){
+		if (event.startOffset < this._loopStart || event.startOffset >= this._loopEnd){
 			event.cancel();
 		} else {
 			//reschedule it if it's stopped
@@ -424,11 +449,12 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	});
 
 	/**
-	 *  Random variation +/-0.01s to the scheduled time. 
-	 *  Or give it a time value which it will randomize by.
+	 *  If set to true, will apply small random variation
+	 *  to the callback time. If the value is given as a time, it will randomize
+	 *  by that amount.
+	 *  @example
+	 * event.humanize = true;
 	 *  @type {Boolean|Time}
-	 *  @memberOf Tone.Part#
-	 *  @name humanize
 	 */
 	Object.defineProperty(Tone.Part.prototype, "humanize", {
 		get : function(){
@@ -449,6 +475,9 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 	 *  @memberOf Tone.Part#
 	 *  @type {Boolean|Positive}
 	 *  @name loop
+	 *  @example
+	 * //loop the part 8 times
+	 * part.loop = 8;
 	 */
 	Object.defineProperty(Tone.Part.prototype, "loop", {
 		get : function(){
@@ -457,8 +486,8 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 		set : function(loop){
 			this._loop = loop;
 			this._forEach(function(event){
-				event._loopStart = 0;
-				event._loopEnd = (this._loopEnd - this._loopStart);
+				event._loopStart = this._loopStart;
+				event._loopEnd = this._loopEnd;
 				event.loop = loop;
 				this._testLoopBoundries(event);
 			});
@@ -480,7 +509,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 			this._loopEnd = this.toTicks(loopEnd);
 			if (this._loop){
 				this._forEach(function(event){
-					event.loopEnd = (this._loopEnd - this._loopStart) + "i";
+					event.loopEnd = this.loopEnd;
 					this._testLoopBoundries(event);
 				});
 			}
@@ -502,7 +531,7 @@ define(["Tone/core/Tone", "Tone/event/Event", "Tone/core/Type", "Tone/core/Trans
 			this._loopStart = this.toTicks(loopStart);
 			if (this._loop){
 				this._forEach(function(event){
-					event.loopEnd = (this._loopEnd - this._loopStart) + "i";
+					event.loopStart = this.loopStart;
 					this._testLoopBoundries(event);
 				});
 			}
