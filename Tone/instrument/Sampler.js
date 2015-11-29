@@ -19,7 +19,7 @@ function(Tone){
 	 *  @example
 	 * var sampler = new Sampler({
 	 * 	A : {
-	 * 		1 : {"./audio/casio/A1.mp3",
+	 * 		1 : "./audio/casio/A1.mp3",
 	 * 		2 : "./audio/casio/A2.mp3",
 	 * 	},
 	 * 	"B.1" : "./audio/casio/B1.mp3",
@@ -127,7 +127,7 @@ function(Tone){
 	 *  @private
 	 */
 	Tone.Sampler.prototype._loadBuffers = function(urls){
-		if (typeof urls === "string"){
+		if (this.isString(urls)){
 			this._buffers["0"] = new Tone.Buffer(urls, function(){
 				this.sample = "0";
 			}.bind(this));
@@ -152,7 +152,7 @@ function(Tone){
 		var toReturn = {};
 		for (var i in ob) {
 			if (!ob.hasOwnProperty(i)) continue;
-			if ((typeof ob[i]) == "object") {
+			if (this.isObject(ob[i])) {
 				var flatObject = this._flattenUrls(ob[i]);
 				for (var x in flatObject) {
 					if (!flatObject.hasOwnProperty(x)) continue;
@@ -261,7 +261,7 @@ function(Tone){
 		},
 		set : function(interval){
 			this._pitch = interval;
-			this.player.playbackRate = this.intervalToFrequencyRatio(interval);
+			this.player.playbackRate.value = this.intervalToFrequencyRatio(interval);
 		}
 	});
 

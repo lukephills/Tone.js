@@ -17,9 +17,17 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	 * 	player.start();
 	 * }
 	 */
-	Tone.Player = function(){
 
-		var options = this.optionsObject(arguments, ["url", "onload"], Tone.Player.defaults);
+	Tone.Player = function(url){
+
+		var options;
+		if (url instanceof Tone.Buffer){
+			url = url.get();
+			options = Tone.Player.defaults;
+		} else {
+			options = this.optionsObject(arguments, ["url", "onload"], Tone.Player.defaults);
+		}		
+
 		Tone.Source.call(this, options);
 
 		/**
@@ -51,6 +59,9 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 			"onload" : this._onload.bind(this, options.onload),
 			"reverse" : options.reverse
 		});
+		if (url instanceof AudioBuffer){
+			this._buffer.set(url);
+		}
 
 		/**
 		 *  if the buffer should loop once it's over
@@ -75,11 +86,12 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 
 
 		/**
-		 *  The playback control.
-		 *  @type {TODO}
-		 *  @signal
+		 * The playback speed of the buffer. 1 is normal speed. 
+		 * @type {Positive}
+		 * @name playbackRate
 		 */
-		this.playbackRate = new Tone.Signal(options.playbackRate);
+		this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
+		this._readOnly("playbackRate");
 
 		/**
 		 *  Enabling retrigger will allow a player to be restarted
@@ -113,8 +125,8 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	/**
 	 *  Load the audio file as an audio buffer.
 	 *  Decodes the audio asynchronously and invokes
-	 *  the callback once the audio buffer loads.
-	 *  Note: this does not need to be called, if a url
+	 *  the callback once the audio buffer loads. 
+	 *  Note: this does not need to be called if a url
 	 *  was passed in to the constructor. Only use this
 	 *  if you want to manually load a new url.
 	 * @param {string} url The url of the buffer to load.
@@ -178,14 +190,18 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 				// https://code.google.com/p/chromium/issues/detail?id=457099
 				duration = 65536;
 			} else {
-				this._nextStop = startTime + duration;
+				//if it's not looping, set the state change at the end of the sample
+				this._state.setStateAtTime(Tone.State.Stopped, startTime + duration);
 			}
 			//and other properties
-			this._source.onended = this.onended;
-			this._source.connect(this.output);
 			this.playbackRate.connect(this._source.playbackRate);
+			this._source.connect(this.output);
 			//start it
-			this._source.start(startTime, offset, duration);
+			if (this._loop){
+				this._source.start(startTime, offset);
+			} else {
+				this._source.start(startTime, offset, duration);
+			}
 		} else {
 			console.log("tried to start Player before the buffer was loaded");
 		}
@@ -262,7 +278,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	/**
 	 * The audio buffer belonging to the player.
 	 * @memberOf Tone.Player#
-	 * @type {AudioBuffer}
+	 * @type {Tone.Buffer}
 	 * @name buffer
 	 */
 	Object.defineProperty(Tone.Player.prototype, "buffer", {
@@ -292,7 +308,6 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 	});
 
-
 	/**
 	 * The direction the buffer should play in
 	 * @memberOf Tone.Player#
@@ -320,6 +335,9 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 		this._buffer.dispose();
 		this._buffer = null;
+		this._writable("playbackRate");
+		this.playbackRate.dispose();
+		this.playbackRate = null;
 		return this;
 	};
 
