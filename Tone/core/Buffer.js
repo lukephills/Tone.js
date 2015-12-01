@@ -176,8 +176,10 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 			return this._reversed;
 		},
 		set : function(rev){
-			this._reversed = rev;
-			this._reverse();
+			if (this._reversed !== rev) {
+				this._reversed = rev;
+				this._reverse();
+			}
 		},
 	});
 
