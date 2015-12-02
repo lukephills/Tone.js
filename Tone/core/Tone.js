@@ -55,6 +55,12 @@ define(function(){
 	if (!isFunction(AudioBufferSourceNode.prototype.stop)){
 		AudioBufferSourceNode.prototype.stop = AudioBufferSourceNode.prototype.noteOff;
 	}
+	if (!isFunction(AudioBuffer.prototype.copyToChannel)){
+		AudioBuffer.prototype.copyToChannel = function(source, channelNumber, startInChannel) {
+			var clipped = source.subarray(0, Math.min(source.length, this.length - (startInChannel|0)));
+			this.getChannelData(channelNumber|0).set(clipped, startInChannel|0);
+		};
+	}
 	if (!isFunction(OscillatorNode.prototype.start)){
 		OscillatorNode.prototype.start = OscillatorNode.prototype.noteOn;
 	}
