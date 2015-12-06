@@ -158,7 +158,7 @@ define(["Tone/core/Tone", "Tone/component/LFO", "Tone/effect/StereoEffect"], fun
 	});
 
 	/** Amount of stereo spread. When set to 0, both LFO's will be panned centrally.
-	 * When set to 180, LFO's will be panned hard left and right
+	 * When set to 180, LFO's will be panned hard left and right respectively.
 	 * @memberOf Tone.Tremolo#
 	 * @type {number}
 	 * @name spread
