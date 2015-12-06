@@ -1142,6 +1142,22 @@ declare module Tone {
 
     interface TransportState {}
 
+    var Tremolo: {
+        new(frequency?: any, depth?: number): Tone.Tremolo;
+    };
+
+    interface Tremolo extends Tone.StereoEffect {
+        depth: Tone.Signal;
+        frequency: Tone.Signal;
+        spread: number;
+        type: string;
+        dispose(): Tone.Tremolo;
+        start(): Tone.Tremolo;
+        stop(): Tone.Tremolo;
+        sync(): Tone.Tremolo;
+        unsync(): Tone.Tremolo;
+    }
+
     var WaveShaper: {
         new(mapping?: any, bufferLen?: number): Tone.WaveShaper;
     };
