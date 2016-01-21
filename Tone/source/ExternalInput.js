@@ -92,7 +92,9 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 	 */
 	Tone.ExternalInput.prototype._getUserMedia = function(callback){
 		if (!Tone.ExternalInput.supported){
-			throw new Error("browser does not support 'getUserMedia'");
+			//throw new Error("browser does not support 'getUserMedia'");
+			console.error("browser does not support 'getUserMedia'");
+			return;
 		}
 		if (Tone.ExternalInput.sources[this._inputNum]){
 			this._constraints = {
