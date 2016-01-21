@@ -23,7 +23,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 		 *  @type {Tone.Timeline}
 		 *  @private
 		 */
-		this._events = new Tone.Timeline();
+		this._events = new Tone.Timeline(10);
 
 		/**
 		 *  The initial scheduled value
@@ -141,6 +141,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal", "Tone/core/Timeline"], function 
 	Tone.TimelineSignal.prototype.setTargetAtTime = function (value, startTime, timeConstant) {
 		value = this._fromUnits(value);
 		value = Math.max(this._minOutput, value);
+		timeConstant = Math.max(this._minOutput, timeConstant);
 		startTime = this.toSeconds(startTime);
 		this._events.addEvent({
 			"type" : Tone.TimelineSignal.Type.Target,

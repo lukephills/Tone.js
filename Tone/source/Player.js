@@ -86,12 +86,11 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 
 
 		/**
-		 * The playback speed of the buffer. 1 is normal speed. 
-		 * @type {Positive}
-		 * @name playbackRate
+		 *  the playback rate
+		 *  @private
+		 *  @type {number}
 		 */
-		this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
-		this._readOnly("playbackRate");
+		this._playbackRate = options.playbackRate;
 
 		/**
 		 *  Enabling retrigger will allow a player to be restarted
@@ -194,7 +193,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 				this._state.setStateAtTime(Tone.State.Stopped, startTime + duration);
 			}
 			//and other properties
-			this.playbackRate.connect(this._source.playbackRate);
+			this._source.playbackRate.value = this._playbackRate;
 			this._source.connect(this.output);
 			//start it
 			if (this._loop){
@@ -309,6 +308,25 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 	});
 
 	/**
+	 * The playback speed. 1 is normal speed. This is not a signal because
+	 * Safari and iOS currently don't support playbackRate as a signal.
+	 * @memberOf Tone.Player#
+	 * @type {number}
+	 * @name playbackRate
+	 */
+	Object.defineProperty(Tone.Player.prototype, "playbackRate", {
+		get : function(){
+			return this._playbackRate;
+		}, 
+		set : function(rate){
+			this._playbackRate = rate;
+			if (this._source) {
+				this._source.playbackRate.value = rate;
+			}
+		}
+	});
+
+	/**
 	 * The direction the buffer should play in
 	 * @memberOf Tone.Player#
 	 * @type {boolean}
@@ -335,9 +353,6 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 		this._buffer.dispose();
 		this._buffer = null;
-		this._writable("playbackRate");
-		this.playbackRate.dispose();
-		this.playbackRate = null;
 		return this;
 	};
 
