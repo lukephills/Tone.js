@@ -182,8 +182,8 @@ declare module Tone {
     };
 
     interface Chorus extends Tone.StereoXFeedbackEffect {
-        delayTime: number
-        depth: number;
+        delayTime: Tone.Signal
+        depth: Tone.Signal;
         frequency: Tone.Signal;
         type: string;
         dispose(): Tone.Chorus;
