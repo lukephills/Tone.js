@@ -812,6 +812,15 @@ declare module Tone {
         dispose(): Tone.PingPongDelay;
     }
 
+    var PitchShift: {
+        new(pitch?: any): Tone.PitchShift;
+    }
+
+    interface PitchShift extends Tone.FeedbackEffect {
+        pitch: number;
+        windowSize: number;
+    }
+
     var Player: {
         new(url?: string | AudioBuffer, onload?: (e: any)=>any): Tone.Player;
     };
