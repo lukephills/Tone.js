@@ -260,7 +260,11 @@ function(Tone){
 		},
 		set : function(interval){
 			this._pitch = interval;
-			this.player.playbackRate.value = this.intervalToFrequencyRatio(interval);
+			if (Tone._isSafari) {
+				this.player.playbackRate = this.intervalToFrequencyRatio(interval);
+			} else {
+				this.player.playbackRate.value = this.intervalToFrequencyRatio(interval);
+			}
 		}
 	});
 

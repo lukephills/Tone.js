@@ -652,6 +652,15 @@ define(function(){
 	};
 
 	/**
+	 *  Used to serve appropriate playbackRate implementation
+	 *  @private
+	 *  @returns {boolean} true if browser is Safari or iOS
+	 */
+	Tone.prototype._isSafari = function(){
+		return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	};
+
+	/**
 	 * Possible play states. 
 	 * @enum {string}
 	 */
