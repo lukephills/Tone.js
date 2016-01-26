@@ -90,7 +90,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		 * @name playbackRate
 		 * @signal in all browsers except safari
 		 */
-		if (Tone._isSafari) {
+		if (Tone.isSafari) {
 			this._playbackRate = options.playbackRate;
 		} else {
 			this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
@@ -199,7 +199,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 			}
 			//and other properties
 
-			if (Tone._isSafari) {
+			if (Tone.isSafari) {
 				this._source.playbackRate.value = this._playbackRate;
 			} else {
 				this.playbackRate.connect(this._source.playbackRate);
@@ -317,7 +317,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 	});
 
-	if (Tone._isSafari) {
+	if (Tone.isSafari) {
 		/**
 		 * The playback speed. 1 is normal speed. This is not a signal because
 		 * Safari and iOS currently don't support playbackRate as a signal.
@@ -365,7 +365,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
 		}
 		this._buffer.dispose();
 		this._buffer = null;
-		if (!Tone._isSafari) {
+		if (!Tone.isSafari) {
 			this._writable("playbackRate");
 			this.playbackRate.dispose();
 			this.playbackRate = null;

@@ -652,15 +652,6 @@ define(function(){
 	};
 
 	/**
-	 *  Used to serve appropriate playbackRate implementation
-	 *  @private
-	 *  @returns {boolean} true if browser is Safari or iOS
-	 */
-	Tone.prototype._isSafari = function(){
-		return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-	};
-
-	/**
 	 * Possible play states. 
 	 * @enum {string}
 	 */
@@ -805,6 +796,12 @@ define(function(){
 		osc.start(now);
 		osc.stop(now+1);
 	};
+
+	/**
+	 *  Used to serve appropriate playbackRate implementation
+	 *  {boolean} true if browser is Safari or iOS
+	 */
+	Tone.isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
 
 	//setup the context
 	Tone._initAudioContext(function(audioContext){

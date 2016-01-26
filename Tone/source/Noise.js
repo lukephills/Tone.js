@@ -50,7 +50,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		 *  @type {Positive}
 		 *  @signal in all browsers except safari
 		 */
-		if (Tone._isSafari) {
+		if (Tone.isSafari) {
 			this._playbackRate = options.playbackRate;
 		} else {
 			this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
@@ -119,7 +119,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	});
 
 
-	if (Tone._isSafari) {
+	if (Tone.isSafari) {
 		/**
 		 *  The playback rate of the noise. Affects
 		 *  the "frequency" of the noise.
@@ -181,7 +181,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		}
 		this._buffer = null;
 
-		if (!Tone._isSafari) {
+		if (!Tone.isSafari) {
 			this._writable("playbackRate");
 			this.playbackRate.dispose();
 			this.playbackRate = null;

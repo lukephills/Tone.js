@@ -260,7 +260,7 @@ function(Tone){
 		},
 		set : function(interval){
 			this._pitch = interval;
-			if (Tone._isSafari) {
+			if (Tone.isSafari) {
 				this.player.playbackRate = this.intervalToFrequencyRatio(interval);
 			} else {
 				this.player.playbackRate.value = this.intervalToFrequencyRatio(interval);
