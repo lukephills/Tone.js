@@ -5,10 +5,12 @@
 	<title>Analyser</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<link rel="icon" type="image/png" sizes="174x174" href="./style/favicon.png">
 	
 	<script type="text/javascript" src="../build/Tone.js"></script>
 	<script type="text/javascript" src="./scripts/jquery.min.js"></script>
-	<script type="text/javascript" src="./scripts/Notone.GUI.js"></script>
+	<script type="text/javascript" src="./scripts/draggabilly.js"></script>
+	<script type="text/javascript" src="./scripts/Logo.js"></script>
 	<script type="text/javascript" src="./scripts/Interface.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="./style/examples.css">
@@ -34,8 +36,7 @@
 			or the waveform. The default <code>returnType</code> is "byte" which returns values
 			in the range 0-255.
 		</div>
-		<canvas id="fft"></canvas>
-		<canvas id="waveform"></canvas>
+		
 	</div>
 
 	<script type="text/javascript">		
@@ -47,7 +48,6 @@
 
 		var player = new Tone.Player({
 			"url" : "./audio/FWDL.mp3",
-			"autostart" : true,
 			"loop" : true
 		}).fan(fft, waveform).toMaster();
 	</script>
@@ -56,8 +56,24 @@
 
 		$(function(){
 
+			//start button
+			new Interface.Button({
+				key : 32,
+				type : "toggle",
+				text : "Start",
+				activeText : "Stop",
+				start : function(){
+					player.start();
+				},
+				end : function(){
+					player.stop();
+				}
+			});
+
 			//drawing the FFT
-			var fftContext = $("#fft").get(0).getContext("2d");
+			var fftContext = $("<canvas>",{
+				"id" : "fft"
+			}).appendTo("#Content").get(0).getContext("2d");
 
 			function drawFFT(values){
 				fftContext.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -72,7 +88,9 @@
 			}
 
 			//the waveform data
-			var waveContext = $("#waveform").get(0).getContext("2d");
+			var waveContext = $("<canvas>", {
+				"id" : "waveform"
+			}).appendTo("#Content").get(0).getContext("2d");
 			var waveformGradient;
 
 			function drawWaveform(values){
@@ -97,8 +115,8 @@
 			var canvasWidth, canvasHeight;
 
 			function sizeCanvases(){
-				canvasWidth = $("canvas").width();
-				canvasHeight = $("canvas").height();
+				canvasWidth = $("#fft").width();
+				canvasHeight = $("#fft").height();
 				waveContext.canvas.width = canvasWidth;
 				fftContext.canvas.width = canvasWidth;
 				waveContext.canvas.height = canvasHeight;
@@ -123,16 +141,6 @@
 				drawWaveform(waveformValues);
 			}
 			loop();
-
-			/*Notone.config({
-				"search" : false,
-				"expandInDrawer" : true,
-				"hideDrawer" : Interface.isMobile,
-				"drawer" : true,
-				"container" : "body"
-			});
-
-			var fmGUI = Notone.add(synth, "SimpleFM");*/
 
 		});
 	</script>

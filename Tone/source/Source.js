@@ -119,15 +119,6 @@ function(Tone){
 	 *  @example
 	 * source.start("+0.5"); //starts the source 0.5 seconds from now
 	 */
-		//Tone.Source.prototype.start = function(time){
-		//	time = this.toSeconds(time);
-		//	if (this._stateAtTime(time) !== Tone.State.Started || this.retrigger){
-		//		this._nextStart = time;
-		//		this._nextStop = Infinity;
-		//		this._start.apply(this, arguments);
-		//	}
-		//	return this;
-		//};
 	Tone.Source.prototype.start = function(time){
 		time = this.toSeconds(time);
 		if (this._state.getStateAtTime(time) !== Tone.State.Started || this.retrigger){
@@ -147,23 +138,6 @@ function(Tone){
 	 *  @example
 	 * source.stop(); // stops the source immediately
 	 */
-		//Tone.Source.prototype.stop = function(time){
-		//	var now = this.now();
-		//	time = this.toSeconds(time, now);
-		//	if (this._stateAtTime(time) === Tone.State.Started){
-		//		this._nextStop = this.toSeconds(time);
-		//		clearTimeout(this._timeout);
-		//		var diff = time - now;
-		//		if (diff > 0){
-		//			//add a small buffer before invoking the callback
-		//			this._timeout = setTimeout(this.onended, diff * 1000 + 20);
-		//		} else {
-		//			this.onended();
-		//		}
-		//		this._stop.apply(this, arguments);
-		//	}
-		//	return this;
-		//};
 	Tone.Source.prototype.stop = function(time){
 		time = this.toSeconds(time);
 		if (this._state.getStateAtTime(time) === Tone.State.Started){

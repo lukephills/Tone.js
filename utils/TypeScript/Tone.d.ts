@@ -177,8 +177,8 @@ declare module Tone {
     };
 
     interface Chorus extends Tone.StereoXFeedbackEffect {
-        delayTime: number
-        depth: number;
+        delayTime: Tone.Signal
+        depth: Tone.Signal;
         frequency: Tone.Signal;
         type: string;
         dispose(): Tone.Chorus;
@@ -559,6 +559,7 @@ declare module Tone {
     interface ExternalInput extends Tone.Source {
         inputNum: number;
         sources: any[];
+        supported: boolean;
         close(): Tone.ExternalInput;
         dispose(): Tone.Microphone;
         getSources(callback: (sources?: any[]) => any): Tone.ExternalInput;
@@ -804,6 +805,15 @@ declare module Tone {
     interface PingPongDelay extends Tone.StereoXFeedbackEffect {
         delayTime: Tone.Signal;
         dispose(): Tone.PingPongDelay;
+    }
+
+    var PitchShift: {
+        new(pitch?: any): Tone.PitchShift;
+    }
+
+    interface PitchShift extends Tone.FeedbackEffect {
+        pitch: number;
+        windowSize: number;
     }
 
     var Player: {

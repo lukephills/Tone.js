@@ -48,10 +48,14 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		 *  The playback rate of the noise. Affects
 		 *  the "frequency" of the noise.
 		 *  @type {Positive}
-		 *  @signal
+		 *  @signal in all browsers except safari
 		 */
-		this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
-		this._readOnly("playbackRate");
+		if (Tone.isSafari) {
+			this._playbackRate = options.playbackRate;
+		} else {
+			this.playbackRate = new Tone.Signal(options.playbackRate, Tone.Type.Positive);
+			this._readOnly("playbackRate");
+		}
 
 		this.type = options.type;
 	};
@@ -114,6 +118,27 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		}
 	});
 
+
+	if (Tone.isSafari) {
+		/**
+		 *  The playback rate of the noise. Affects
+		 *  the "frequency" of the noise.
+		 *  @type {Positive}
+		 *  @signal
+		 */
+		Object.defineProperty(Tone.Noise.prototype, "playbackRate", {
+			get : function(){
+				return this._playbackRate;
+			},
+			set : function(rate){
+				this._playbackRate = rate;
+				if (this._source) {
+					this._source.playbackRate.value = rate;
+				}
+			}
+		});
+	}
+
 	/**
 	 *  internal start method
 	 *
@@ -124,8 +149,11 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		this._source = this.context.createBufferSource();
 		this._source.buffer = this._buffer;
 		this._source.loop = true;
-		this._source.connect(this.output);
+		//todo if SAFARI
+		//this._source.playbackRate.value = this._playbackRate;
+		//else
 		this.playbackRate.connect(this._source.playbackRate);
+		this._source.connect(this.output);
 		this._source.start(this.toSeconds(time));
 	};
 
@@ -152,9 +180,13 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 			this._source = null;
 		}
 		this._buffer = null;
-		this._writable("playbackRate");
-		this.playbackRate.dispose();
-		this.playbackRate = null;
+
+		if (!Tone.isSafari) {
+			this._writable("playbackRate");
+			this.playbackRate.dispose();
+			this.playbackRate = null;
+		}
+
 		return this;
 	};
 

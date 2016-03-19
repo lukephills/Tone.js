@@ -86,6 +86,9 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Type", "Tone/core/Ti
 		 *  The probability that the callback will be invoked
 		 *  at the scheduled time. 
 		 *  @type {NormalRange}
+		 *  @example
+		 * //the callback will be invoked 50% of the time
+		 * event.probability = 0.5;
 		 */
 		this.probability = options.probability;
 
@@ -155,15 +158,12 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Type", "Tone/core/Ti
 					if (nextEvent !== null){
 						duration = Math.min(duration, nextEvent.time - startTick);
 					}
-					//make it ticks
 					if (duration !== Infinity){
 						//schedule a stop since it's finite duration
+						this._state.setStateAtTime(Tone.State.Stopped, startTick + duration + 1);
 						duration += "i";
 					}
 					event.id = Tone.Transport.scheduleRepeat(this._tick.bind(this), this._getLoopDuration().toString() + "i", startTick + "i", duration);
-					if (duration !== Infinity){
-						this.stop((startTick + 1) + "i + "+ duration);
-					}
 				} else {
 					event.id = Tone.Transport.schedule(this._tick.bind(this), startTick + "i");
 				}
@@ -225,6 +225,7 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Type", "Tone/core/Ti
 	 *  @return  {Tone.Event}  this
 	 */
 	Tone.Event.prototype.stop = function(time){
+		this.cancel(time);
 		time = this.toTicks(time);
 		if (this._state.getStateAtTime(time) === Tone.State.Started){
 			this._state.setStateAtTime(Tone.State.Stopped, time);
@@ -363,8 +364,8 @@ define(["Tone/core/Tone", "Tone/core/Transport", "Tone/core/Type", "Tone/core/Ti
 
 	/**
 	 *  The current progress of the loop interval.
-	 *  Returns 0 if the atom is not started yet or the 
-	 *  atom is not set to loop.
+	 *  Returns 0 if the event is not started yet or
+	 *  it is not set to loop.
 	 *  @memberOf Tone.Event#
 	 *  @type {NormalRange}
 	 *  @name progress

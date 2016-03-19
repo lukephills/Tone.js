@@ -50,7 +50,7 @@ Using Tone.js? I'd love to hear it: yotammann@gmail.com
 //create one of Tone's built-in synthesizers and connect it to the master output
 var synth = new Tone.SimpleSynth().toMaster();
 
-//play a middle C for the duration of an 8th note
+//play a middle c for the duration of an 8th note
 synth.triggerAttackRelease("C4", "8n");
 ```
 
@@ -124,7 +124,7 @@ var monoSynth = new Tone.MonoSynth({
 }).toMaster();
 
 //start the note "D3" one second from now
-simpleSynth.triggerAttack("D3", "+1");
+monoSynth.triggerAttack("D3", "+1");
 ```
 
 All instruments are monophonic (one voice) but can be made polyphonic when the constructor is passed in as the second argument to [Tone.PolySynth](http://tonejs.org/docs/#PolySynth). 

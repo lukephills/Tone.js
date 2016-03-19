@@ -168,6 +168,17 @@ define(["Test", "Tone/core/Timeline"], function (Test, Timeline) {
 			sched.dispose();
 		});
 
+		it ("can cancel an item", function(){
+			var sched = new Timeline();
+			sched.addEvent({"time" : 3});
+			expect(sched.length).to.equal(1);
+			sched.cancel(10);
+			expect(sched.length).to.equal(1);
+			sched.cancel(3);
+			expect(sched.length).to.equal(0);
+			sched.dispose();
+		});
+
 		it ("can cancel items after the given time", function(){
 			var sched = new Timeline();
 			for (var i = 5; i < 100; i++){
@@ -206,6 +217,17 @@ define(["Test", "Tone/core/Timeline"], function (Test, Timeline) {
 			for (var j = 0; j < 10000; j++){
 				expect(sched.getEvent(j).time).to.equal(j);
 			}
+			sched.dispose();
+		});
+
+		it ("can constrain the length of the timeline", function(){
+			var sched = new Timeline(4);
+			for (var i = 0; i < 10000; i++){
+				sched.addEvent({
+					"time" : i
+				});
+			}
+			expect(sched.length).to.equal(4);
 			sched.dispose();
 		});
 

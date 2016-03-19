@@ -797,6 +797,12 @@ define(function(){
 		osc.stop(now+1);
 	};
 
+	/**
+	 *  Used to serve appropriate playbackRate implementation
+	 *  {boolean} true if browser is Safari or iOS
+	 */
+	Tone.isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+
 	//setup the context
 	Tone._initAudioContext(function(audioContext){
 		//set the blockTime
@@ -806,7 +812,7 @@ define(function(){
 		_silentNode.connect(audioContext.destination);
 	});
 
-	Tone.version = "r6-dev";
+	Tone.version = "r6";
 
 	console.log("%c * Tone.js " + Tone.version + " * ", "background: #000; color: #fff");
 

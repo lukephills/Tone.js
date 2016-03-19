@@ -1,7 +1,7 @@
 ### r6
 
 * Added PitchShift and Vibrato Effect.
-* Added Timeline/TimelineState/TimelineSignal which keeps track of the state
+* Added Timeline/TimelineState/TimelineSignal which keeps track of all scheduled state changes.
 * Clock uses requestAnimationFrame instead of ScriptProcessorNode
 * Removed `onended` event from Tone.Source
 * Refactored tests into individual files. 
@@ -18,10 +18,14 @@
 * Control-rate generators for value interpolation, patterns, random numbers, and markov chains. 
 * Scheduable musical events: Tone.Event, Tone.Loop, Tone.Part, Tone.Pattern, Tone.Sequence. 
 * Player's playbackRate is now a signal and Noise includes a playbackRate signal. 
+* All filterEnvelopes use new Tone.FrequencyEnvelope with frequency units and `baseFrequency` and `octaves` instead of `min` and `max`. 
+* Phaser uses "octaves" instead of "depth" to be more consistent across the whole Tone.js API. 
+* Presets now have [their own repo](https://github.com/Tonejs/Presets)
 
 DEPRECATED:
 * `setTimeout`, `setInterval`, `setTimeline` in favor of new `schedule`, `scheduleOnce`, and `scheduleRepeat`.
 * Tone.Signal no longer takes an AudioParam in the first argument. Use Tone.Param instead. 
+* Tone.Buffer.onload/onprogress/onerror is deprecated. Use `Tone.Buffer.on("load", callback)` instead. 
 
 ### r5
 
