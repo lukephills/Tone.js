@@ -27,6 +27,7 @@ declare class Tone {
     isFrequency(freq: number): boolean;
     isFunction(arg: any): boolean;
     isUndef(arg: any): boolean;
+    midiToFrequency(midiNumber: number): number;
     midiToNote(midiNumber: number): string;
     noGC(): Tone;
     normalize(input: number, inputMin: number, inputMax: number): number;
@@ -71,7 +72,7 @@ declare module Tone {
         new(attack?: any, decay?: Tone.Time, sustain?: number, release?:Tone.Time): Tone.AmplitudeEnvelope;
     };
 
-    interface AmplitudeEnvelope extends Tone.Envelope {
+    interface AmplitudeEnvelope extends Tone.SimpleEnvelope {
         dispose(): Tone.AmplitudeEnvelope;
     }
 
@@ -932,14 +933,11 @@ declare module Tone {
         attack: Tone.Time;
         attackCurve: string;
         decay: Tone.Time;
-        decayCurve: string;
         release: Tone.Time;
-        releaseCurve: string;
         sustain: number;
         dispose(): Tone.SimpleEnvelope;
-        triggerAttack(time?: number, velocity?: number): Tone.SimpleEnvelope;
-        triggerAttackRelease(duration: Tone.Time, time?: number, velocity?: number): Tone.SimpleEnvelope;
-        triggerRelease(time?: number): Tone.SimpleEnvelope;
+        triggerAttack(): void;
+        triggerRelease(): void;
     }
 
     var Simpler: {

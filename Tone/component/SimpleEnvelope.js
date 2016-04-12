@@ -5,10 +5,8 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
 
     /**
      *  @class  Tone.SimpleEnvelope is an [ADSR](https://en.wikipedia.org/wiki/Synthesizer#ADSR_envelope)
-     *          envelope generator. Tone.SimpleEnvelope outputs a signal which
-     *          can be connected to an AudioParam or Tone.Signal.
-     *          This runs faster than the Tone.Envelope but is limited in that the time
-     *          parameters need to be of type number in seconds.
+     *          envelope generator. Adapted from the more advanced Tone.Envelope. This cannot schedule triggers,
+     *          release curves are always linear and there are no state checks.
      *          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/ADSR_parameter.svg">
      *
      *  @constructor
@@ -74,47 +72,12 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
         this._minOutput = 0.00001;
 
         /**
-         *  the attack curve shape
-         *  @type {string}
-         *  @private
-         */
-        this._attackCurve = Tone.SimpleEnvelope.Type.Linear;
-
-        /**
-         *  the decay curve shape
-         *  @type {string}
-         *  @private
-         */
-        this._decayCurve = Tone.SimpleEnvelope.Type.Exponential;
-
-        /**
-         *  the release curve shape
-         *  @type {string}
-         *  @private
-         */
-        this._releaseCurve = Tone.SimpleEnvelope.Type.Exponential;
-
-        /**
          *  the signal
-         *  @type {Tone.Signal}
+         *  @type {Tone.TimelineSignal}
          *  @private
          */
         this._sig = this.output = new Tone.Signal();
-        this._sig.setValueAtTime(0, 0);
-
-        //set the attackCurve initially
-        this.attackCurve = options.attackCurve;
-        this.decayCurve = options.decayCurve;
-        this.releaseCurve = options.releaseCurve;
-
-        /**
-         *  the input node
-         *  @type {GainNode}
-         *  @private
-         */
-        this.input = this.output = new Tone.Gain();
-
-        this._sig.connect(this.output.gain);
+        this._sig.setValueAtTime(this._minOutput, 0);
     };
 
     Tone.extend(Tone.SimpleEnvelope);
@@ -129,170 +92,39 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
         "decay" : 0.1,
         "sustain" : 0.5,
         "release" : 1,
-        "attackCurve" : "linear",
-        "decayCurve" : "exponential",
-        "releaseCurve" : "exponential",
     };
 
     /**
-     *  the envelope time multipler
-     *  @type {number}
-     *  @private
-     */
-    Tone.SimpleEnvelope.prototype._timeMult = 0.25;
-
-    /**
-     * Read the current value of the envelope. Useful for
-     * syncronizing visual output to the envelope.
-     * @memberOf Tone.SimpleEnvelope#
-     * @type {Number}
-     * @name value
-     * @readOnly
-     */
-    Object.defineProperty(Tone.SimpleEnvelope.prototype, "value", {
-        get : function(){
-            return this._sig.value;
-        }
-    });
-
-    /**
-     * The slope of the attack. Either "linear" or "exponential".
-     * @memberOf Tone.SimpleEnvelope#
-     * @type {string}
-     * @name attackCurve
-     * @example
-     * env.attackCurve = "linear";
-     */
-    Object.defineProperty(Tone.SimpleEnvelope.prototype, "attackCurve", {
-        get : function(){
-            return this._attackCurve;
-        },
-        set : function(type){
-            if (type === Tone.SimpleEnvelope.Type.Linear ||
-                type === Tone.SimpleEnvelope.Type.Exponential){
-                this._attackCurve = type;
-            } else {
-                throw Error("attackCurve must be either \"linear\" or \"exponential\". Invalid type: ", type);
-            }
-        }
-    });
-
-    /**
-     * The slope of the Decay. Either "linear" or "exponential".
-     * @memberOf Tone.SimpleEnvelope#
-     * @type {string}
-     * @name decayCurve
-     * @example
-     * env.decayCurve = "linear";
-     */
-    Object.defineProperty(Tone.SimpleEnvelope.prototype, "decayCurve", {
-        get : function(){
-            return this._decayCurve;
-        },
-        set : function(type){
-            if (type === Tone.SimpleEnvelope.Type.Linear ||
-                type === Tone.SimpleEnvelope.Type.Exponential){
-                this._decayCurve = type;
-            } else {
-                throw Error("decayCurve must be either \"linear\" or \"exponential\". Invalid type: ", type);
-            }
-        }
-    });
-
-    /**
-     * The slope of the Release. Either "linear" or "exponential".
-     * @memberOf Tone.SimpleEnvelope#
-     * @type {string}
-     * @name releaseCurve
-     * @example
-     * env.releaseCurve = "linear";
-     */
-    Object.defineProperty(Tone.SimpleEnvelope.prototype, "releaseCurve", {
-        get : function(){
-            return this._releaseCurve;
-        },
-        set : function(type){
-            if (type === Tone.SimpleEnvelope.Type.Linear ||
-                type === Tone.SimpleEnvelope.Type.Exponential){
-                this._releaseCurve = type;
-            } else {
-                throw Error("releaseCurve must be either \"linear\" or \"exponential\". Invalid type: ", type);
-            }
-        }
-    });
-
-    /**
      *  Trigger the attack/decay portion of the ADSR envelope.
-     *  @param  {number} [time=now] When the attack should start.
+     *  @param  {Time} [time=now] When the attack should start.
      *  @param {NormalRange} [velocity=1] The velocity of the envelope scales the vales.
      *                               number between 0-1
-     *  @returns {Tone.SimpleEnvelope} this
+     *  @returns {Tone.Envelope} this
      *  @example
      *  //trigger the attack 0.5 seconds from now with a velocity of 0.2
      *  env.triggerAttack("+0.5", 0.2);
      */
-    Tone.SimpleEnvelope.prototype.triggerAttack = function(time, velocity){
-        time = this.defaultArg(time, 0) + Tone.context.currentTime;
-        var attack = this.toSeconds(this.attack);
-        var decay = this.toSeconds(this.decay) * this._timeMult;
-        velocity = this.defaultArg(velocity, 1);
-        this._sig.cancelScheduledValues( time );
-        // Anchor beginning of ramp at current value.
-        this._sig.setValueAtTime(this._sig.value, time);
-        // Ramp quickly up.
-        if (this._attackCurve === Tone.SimpleEnvelope.Type.Linear){
-            this._sig.linearRampToValueAtTime(velocity, time + attack);
-        } else {
-            this._sig.exponentialRampToValueAtTime(velocity, time + attack);
-        }
-        // Then decay down to a sustain level.
-        if (this._decayCurve === Tone.SimpleEnvelope.Type.Linear){
-            this._sig.linearRampToValueAtTime(this.sustain * velocity, time + attack + decay);
-        } else {
-            this._sig.exponentialRampToValueAtTime(this.sustain * velocity, time + attack + decay);
-        }
-        return this;
+    Tone.SimpleEnvelope.prototype.triggerAttack = function(){
+        var now = this.context.currentTime;
+        this._sig.cancelScheduledValues(0);
+        this._sig.setValueAtTime(this._minOutput, now);
+        this._sig.linearRampToValueAtTime(1, now + this.attack);
+        this._sig.linearRampToValueAtTime(this.sustain, now + this.attack + this.decay)
     };
 
     /**
      *  Triggers the release of the envelope.
-     *  @param  {number} [time=now] When the release portion of the envelope should start.
-     *  @returns {Tone.SimpleEnvelope} this
+     *  @param  {Time} [time=now] When the release portion of the envelope should start.
+     *  @returns {Tone.Envelope} this
      *  @example
      *  //trigger release immediately
      *  env.triggerRelease();
      */
-    Tone.SimpleEnvelope.prototype.triggerRelease = function(time){
-        time = this.defaultArg(time, 0) + Tone.context.currentTime;
-        var release = this.toSeconds(this.release) * this._timeMult;
-        this._sig.cancelScheduledValues( time );
-        // Anchor beginning of ramp at current value.
-        this._sig.setValueAtTime(this._sig.value, time);
-        // Third value controls how slow the value decays.
-        if (this._releaseCurve === Tone.SimpleEnvelope.Type.Linear){
-            this._sig.linearRampToValueAtTime(this._minOutput, time + release);
-        } else {
-            this._sig.exponentialRampToValueAtTime(this._minOutput, time + release);
-        }
-        this._sig.exponentialRampToValueAtTime(this._minOutput, time + release);
-        return this;
-    };
-
-    /**
-     *  triggerAttackRelease is shorthand for triggerAttack, then waiting
-     *  some duration, then triggerRelease.
-     *  @param {Time} duration The duration of the sustain.
-     *  @param {number} [time=now] When the attack should be triggered.
-     *  @param {number} [velocity=1] The velocity of the envelope.
-     *  @returns {Tone.SimpleEnvelope} this
-     *  @example
-     * //trigger the attack and then the release after 0.6 seconds.
-     * env.triggerAttackRelease(0.6);
-     */
-    Tone.SimpleEnvelope.prototype.triggerAttackRelease = function(duration, time, velocity) {
-        this.triggerAttack(time, velocity);
-        this.triggerRelease(time + this.toSeconds(duration));
-        return this;
+    Tone.SimpleEnvelope.prototype.triggerRelease = function(){
+        var now = this.context.currentTime;
+        this._sig.cancelScheduledValues(0);
+        this._sig.setValueAtTime(this._sig.value, now);
+        this._sig.linearRampToValueAtTime(this._minOutput, now + this.release);
     };
 
     /**
@@ -304,25 +136,13 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
 
     /**
      *  Disconnect and dispose.
-     *  @returns {Tone.SimpleEnvelope} this
-     *  @returns {Tone.SimpleEnvelope} this
+     *  @returns {Tone.Envelope} this
      */
     Tone.SimpleEnvelope.prototype.dispose = function(){
-        this.input.dispose();
-        this.input = null;
         Tone.prototype.dispose.call(this);
         this._sig.dispose();
         this._sig = null;
         return this;
-    };
-
-    /**
-     *  The phase of the envelope.
-     *  @enum {string}
-     */
-    Tone.SimpleEnvelope.Type = {
-        Linear : "linear",
-        Exponential : "exponential",
     };
 
     return Tone.SimpleEnvelope;
