@@ -107,7 +107,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
     Tone.SimpleEnvelope.prototype.triggerAttack = function(){
         var now = this.context.currentTime;
         this._sig.cancelScheduledValues(0);
-        this._sig.setValueAtTime(this._minOutput, now);
+        this._sig.setValueAtTime(this._sig.value, now);
         this._sig.linearRampToValueAtTime(1, now + this.attack);
         this._sig.linearRampToValueAtTime(this.sustain, now + this.attack + this.decay)
     };
@@ -125,6 +125,12 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
         this._sig.cancelScheduledValues(0);
         this._sig.setValueAtTime(this._sig.value, now);
         this._sig.linearRampToValueAtTime(this._minOutput, now + this.release);
+    };
+
+
+    Tone.SimpleEnvelope.prototype.triggerAttackRelease = function(duration){
+        this.triggerAttack();
+        setTimeout(this.triggerRelease.bind(this), duration);
     };
 
     /**
