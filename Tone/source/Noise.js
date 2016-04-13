@@ -1,4 +1,4 @@
-define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
+define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 
 	"use strict";
 
@@ -8,7 +8,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	 *          colors of noise on [Wikipedia](https://en.wikipedia.org/wiki/Colors_of_noise).
 	 *
 	 *  @constructor
-	 *  @extends {Tone.Source}
+	 *  @extends {Tone.SimpleSource}
 	 *  @param {string} type the noise type (white|pink|brown)
 	 *  @example
 	 * //initialize the noise and start
@@ -29,7 +29,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	Tone.Noise = function(){
 
 		var options = this.optionsObject(arguments, ["type"], Tone.Noise.defaults);
-		Tone.Source.call(this, options);
+		Tone.SimpleSource.call(this, options);
 
 		/**
 		 *  @private
@@ -60,7 +60,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 		this.type = options.type;
 	};
 
-	Tone.extend(Tone.Noise, Tone.Source);
+	Tone.extend(Tone.Noise, Tone.SimpleSource);
 
 	/**
 	 *  the default parameters
@@ -104,7 +104,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 					case "brown" :
 						this._buffer = _brownNoise;
 						break;
-					default : 
+					default :
 						throw new Error("invalid noise type: "+type)
 				}
 				//if it's playing, stop and restart it
@@ -174,7 +174,7 @@ define(["Tone/core/Tone", "Tone/source/Source"], function(Tone){
 	 *  @returns {Tone.Noise} this
 	 */
 	Tone.Noise.prototype.dispose = function(){
-		Tone.Source.prototype.dispose.call(this);
+		Tone.SimpleSource.prototype.dispose.call(this);
 		if (this._source !== null){
 			this._source.disconnect();
 			this._source = null;

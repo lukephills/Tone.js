@@ -1,29 +1,29 @@
-define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone){
+define(["Tone/core/Tone", "Tone/source/SimpleSource", "Tone/core/Gain"], function(Tone){
 
 	"use strict";
 
 	//polyfill for getUserMedia
-	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || 
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
 		navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
 	/**
-	 *  @class  Tone.ExternalInput is a WebRTC Audio Input. Check 
+	 *  @class  Tone.ExternalInput is a WebRTC Audio Input. Check
 	 *          [Media Stream API Support](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_API)
 	 *          to see which browsers are supported. As of
-	 *          writing this, Chrome, Firefox, and Opera 
-	 *          support Media Stream. Chrome allows enumeration 
-	 *          of the sources, and access to device name over a 
-	 *          secure (HTTPS) connection. See [https://simpl.info](https://simpl.info/getusermedia/sources/index.html) 
-	 *          vs [http://simple.info](https://simpl.info/getusermedia/sources/index.html) 
+	 *          writing this, Chrome, Firefox, and Opera
+	 *          support Media Stream. Chrome allows enumeration
+	 *          of the sources, and access to device name over a
+	 *          secure (HTTPS) connection. See [https://simpl.info](https://simpl.info/getusermedia/sources/index.html)
+	 *          vs [http://simple.info](https://simpl.info/getusermedia/sources/index.html)
 	 *          on a Chrome browser for the difference.
-	 *         
+	 *
 	 *  @constructor
-	 *  @extends {Tone.Source}
+	 *  @extends {Tone.SimpleSource}
 	 *  @param {number} [inputNum=0] If multiple inputs are present, select the input number. Chrome only.
 	 *  @example
 	 * //select the third input
 	 * var motu = new Tone.ExternalInput(3);
-	 * 
+	 *
 	 * //opening the input asks the user to activate their mic
 	 * motu.open(function(){
 	 * 	//opening is activates the microphone
@@ -35,22 +35,22 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 	Tone.ExternalInput = function(){
 
 		var options = this.optionsObject(arguments, ["inputNum"], Tone.ExternalInput.defaults);
-		Tone.Source.call(this, options);
+		Tone.SimpleSource.call(this, options);
 
 		/**
-		 *  The MediaStreamNode 
+		 *  The MediaStreamNode
 		 *  @type {MediaStreamAudioSourceNode}
 		 *  @private
 		 */
 		this._mediaStream = null;
-		
+
 		/**
 		 *  The media stream created by getUserMedia.
 		 *  @type {LocalMediaStream}
 		 *  @private
 		 */
 		this._stream = null;
-		
+
 		/**
 		 *  The constraints argument for getUserMedia
 		 *  @type {Object}
@@ -59,7 +59,7 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 		this._constraints = {"audio" : true};
 
 		/**
-		 *  The input source position in Tone.ExternalInput.sources. 
+		 *  The input source position in Tone.ExternalInput.sources.
 		 *  Set before ExternalInput.open().
 		 *  @type {Number}
 		 *  @private
@@ -67,7 +67,7 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 		this._inputNum = options.inputNum;
 
 		/**
-		 *  Gates the input signal for start/stop. 
+		 *  Gates the input signal for start/stop.
 		 *  Initially closed.
 		 *  @type {GainNode}
 		 *  @private
@@ -75,7 +75,7 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 		this._gate = new Tone.Gain(0).connect(this.output);
 	};
 
-	Tone.extend(Tone.ExternalInput, Tone.Source);
+	Tone.extend(Tone.ExternalInput, Tone.SimpleSource);
 
 	/**
 	 * the default parameters
@@ -127,12 +127,12 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 			this._mediaStream = this.context.createMediaStreamSource(stream);
 			//Connect the MediaStreamSourceNode to a gate gain node
 			this._mediaStream.connect(this._gate);
-		} 
+		}
 	};
 
 	/**
-	 *  Open the media stream 
-	 *  @param  {function=} callback The callback function to 
+	 *  Open the media stream
+	 *  @param  {function=} callback The callback function to
 	 *                       execute when the stream is open
 	 *  @return {Tone.ExternalInput} this
 	 */
@@ -153,7 +153,7 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 			var track = this._stream.getTracks()[this._inputNum];
 			if (!this.isUndef(track)){
 				track.stop();
-			} 
+			}
 			this._stream = null;
 		}
 		return this;
@@ -184,7 +184,7 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 	 * @return {Tone.ExternalInput} this
 	 */
 	Tone.ExternalInput.prototype.dispose = function(){
-		Tone.Source.prototype.dispose.call(this);
+		Tone.SimpleSource.prototype.dispose.call(this);
 		this.close();
 		if (this._mediaStream){
 			this._mediaStream.disconnect();
@@ -229,9 +229,9 @@ define(["Tone/core/Tone", "Tone/source/Source", "Tone/core/Gain"], function(Tone
 	});
 
 	/**
-	 *  Populates the source list. Invokes the callback with an array of 
+	 *  Populates the source list. Invokes the callback with an array of
 	 *  possible audio sources.
-	 *  @param  {function=} callback Callback to be executed after populating list 
+	 *  @param  {function=} callback Callback to be executed after populating list
 	 *  @return {Tone.ExternalInput} this
 	 *  @static
 	 *  @example

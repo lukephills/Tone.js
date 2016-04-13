@@ -1,4 +1,4 @@
-define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(Tone){
+define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], function(Tone){
 
     "use strict";
 
@@ -6,7 +6,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
      *  @class  Tone.SimplePlayer is an audio file player with start, loop, and stop functions.
      *
      *  @constructor
-     *  @extends {Tone.Source}
+     *  @extends {Tone.SimpleSource}
      *  @param {string|AudioBuffer} url Either the AudioBuffer or the url from
      *                                  which to load the AudioBuffer
      *  @param {function=} onload The function to invoke when the buffer is loaded.
@@ -28,7 +28,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
             options = this.optionsObject(arguments, ["url", "onload"], Tone.SimplePlayer.defaults);
         }
 
-        Tone.Source.call(this, options);
+        Tone.SimpleSource.call(this, options);
 
         /**
          *  @private
@@ -107,7 +107,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
         this.retrigger = options.retrigger;
     };
 
-    Tone.extend(Tone.SimplePlayer, Tone.Source);
+    Tone.extend(Tone.SimplePlayer, Tone.SimpleSource);
 
     /**
      *  the default parameters
@@ -354,7 +354,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/Source"], function(To
      *  @return {Tone.SimplePlayer} this
      */
     Tone.SimplePlayer.prototype.dispose = function(){
-        Tone.Source.prototype.dispose.call(this);
+        Tone.SimpleSource.prototype.dispose.call(this);
         if (this._source !== null){
             this._source.disconnect();
             this._source = null;
