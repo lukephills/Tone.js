@@ -1,4 +1,4 @@
-define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelope", "Tone/instrument/Instrument"],
+define(["Tone/core/Tone", "Tone/source/SimplePlayer", "Tone/component/AmplitudeEnvelope", "Tone/instrument/Instrument"],
     function(Tone){
 
         "use strict";
@@ -34,9 +34,9 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
 
             /**
              *  The sample player
-             *  @type {Tone.Player}
+             *  @type {Tone.SimplePlayer}
              */
-            this.player = new Tone.Player(options.player);
+            this.player = new Tone.SimplePlayer(options.player);
 
             /**
              *  the buffers
@@ -136,10 +136,9 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
          *  @param {number} [velocity=1] the velocity of the note
          *  @returns {Tone.Simpler} `this`
          */
-        Tone.Simpler.prototype.triggerAttack = function(time, offset, duration, velocity){
-            time = this.toSeconds(time);
-            this.player.start(time, offset, duration);
-            this.envelope.triggerAttack(time, velocity);
+        Tone.Simpler.prototype.triggerAttack = function(offset, duration){
+            this.player.start(offset, duration);
+            this.envelope.triggerAttack();
             return this;
         };
 
@@ -152,26 +151,25 @@ define(["Tone/core/Tone", "Tone/source/Player", "Tone/component/AmplitudeEnvelop
          *  @example
          *  sampler.triggerRelease();
          */
-        Tone.Simpler.prototype.triggerRelease = function(time){
-            time = this.toSeconds(time);
-            this.envelope.triggerRelease(time);
-            this.player.stop(this.toSeconds(this.envelope.release) + time);
+        Tone.Simpler.prototype.triggerRelease = function(){
+            var now = this.context.currentTime;
+            this.envelope.triggerRelease();
+            this.player.stop(this.envelope.release + now);
             return this;
         };
 
         /**
          * Start and stop the sampler for a length of time
          *  @param {Tone.Time} length of playback time before the release kicks in
-         *  @param {Tone.Time} [time=now] The time when the note should start
          *  @param {Tone.Time} offset time in the buffer (in seconds) where playback will begin
          *  @param {Tone.Time}  duration of the portion (in seconds) to be played
-         *  @param {number} [velocity=1] the velocity of the note
          */
-        Tone.Simpler.prototype.triggerAttackRelease = function(length, time, offset, duration, velocity){
-            time = this.toSeconds(time);
-            length = this.toSeconds(length);
-            this.triggerAttack(time, offset, duration, velocity);
-            this.triggerRelease(time + length);
+        Tone.Simpler.prototype.triggerAttackRelease = function(length, offset, duration){
+            this.triggerAttack(offset, duration);
+            var that = this;
+            setTimeout(function(){
+                that.triggerRelease();
+            }, length);
             return this;
         };
 

@@ -69,7 +69,7 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
          *  @type {number}
          *  @private
          */
-        this._minOutput = 0.00001;
+        this._minOutput = 0.0001;
 
         /**
          *  the signal
@@ -104,12 +104,13 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
      *  //trigger the attack 0.5 seconds from now with a velocity of 0.2
      *  env.triggerAttack("+0.5", 0.2);
      */
-    Tone.SimpleEnvelope.prototype.triggerAttack = function(){
-        var now = this.context.currentTime;
+    Tone.SimpleEnvelope.prototype.triggerAttack = function(when, velocity){
+        when = this.isUndef(when) ? this.context.currentTime : when;
+        velocity = this.isUndef(velocity) ? 1 : velocity;
         this._sig.cancelScheduledValues(0);
-        this._sig.setValueAtTime(this._sig.value, now);
-        this._sig.linearRampToValueAtTime(1, now + this.attack);
-        this._sig.linearRampToValueAtTime(this.sustain, now + this.attack + this.decay)
+        this._sig.setValueAtTime(this._sig.value, when);
+        this._sig.linearRampToValueAtTime(velocity, when + this.attack);
+        this._sig.linearRampToValueAtTime(this.sustain * velocity, when + this.attack + this.decay)
     };
 
     /**
@@ -120,17 +121,18 @@ define(["Tone/core/Tone", "Tone/signal/Signal",
      *  //trigger release immediately
      *  env.triggerRelease();
      */
-    Tone.SimpleEnvelope.prototype.triggerRelease = function(){
-        var now = this.context.currentTime;
+    Tone.SimpleEnvelope.prototype.triggerRelease = function(when){
+        when = this.isUndef(when) ? this.context.currentTime : when;
         this._sig.cancelScheduledValues(0);
-        this._sig.setValueAtTime(this._sig.value, now);
-        this._sig.linearRampToValueAtTime(this._minOutput, now + this.release);
+        this._sig.setValueAtTime(this._sig.value, when);
+        this._sig.linearRampToValueAtTime(this._minOutput, when + this.release);
     };
 
 
-    Tone.SimpleEnvelope.prototype.triggerAttackRelease = function(duration){
-        this.triggerAttack();
-        setTimeout(this.triggerRelease.bind(this), duration);
+    Tone.SimpleEnvelope.prototype.triggerAttackRelease = function(duration, when){
+        when = this.isUndef(when) ? this.context.currentTime : when;
+        this.triggerAttack(when);
+        this.triggerRelease(duration + when);
     };
 
     /**

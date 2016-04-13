@@ -1,6 +1,7 @@
-interface ToneFactory {
+interface Tone {
     new(inputs?: number, outputs?: number): Tone
 }
+
 
 declare class Tone {
     context: AudioContext;
@@ -838,6 +839,27 @@ declare module Tone {
         start(startTime?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time): Tone.Player;
     }
 
+    var SimplePlayer: {
+        new(url?: string | AudioBuffer, onload?: (e: any)=>any): Tone.SimplePlayer;
+    };
+
+    interface SimplePlayer extends Tone.Source {
+        autostart: boolean;
+        buffer: Tone.Buffer | AudioBuffer;
+        duration: number;
+        loop: boolean;
+        loopEnd: number;
+        loopStart: number;
+        playbackRate: Tone.Signal;
+        retrigger: boolean;
+        reverse: boolean;
+        startPosition: number;
+        dispose(): Tone.SimplePlayer;
+        load(url:string | AudioBuffer, callback?:(e: any)=>any);
+        setLoopPoints(loopStart:number, loopEnd:number);
+        start(offset?: number, duration?: number);
+    }
+
     var PluckSynth : {
         new(options?: Object): Tone.PluckSynth;
     };
@@ -936,8 +958,9 @@ declare module Tone {
         release: Tone.Time;
         sustain: number;
         dispose(): Tone.SimpleEnvelope;
-        triggerAttack(): void;
-        triggerRelease(): void;
+        triggerAttack(when?: number): void;
+        triggerRelease(when?: number): void;
+        triggerAttackRelease(duration: number, when?: number): void;
     }
 
     var Simpler: {
@@ -948,9 +971,9 @@ declare module Tone {
         envelope: Tone.AmplitudeEnvelope;
         player: Tone.Player;
         dispose(): Tone.Simpler;
-        triggerAttack(time?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time, velocity?: number): Tone.Simpler;
-        triggerRelease(time?: Tone.Time): Tone.Simpler;
-        triggerAttackRelease(length: Tone.Time, time?: Tone.Time, offset?: Tone.Time, duration?: Tone.Time, velocity?: number): Tone.Simpler;
+        triggerAttack(offset?: Tone.Time, duration?: Tone.Time): Tone.Simpler;
+        triggerRelease(): Tone.Simpler;
+        triggerAttackRelease(length: Tone.Time, offset?: Tone.Time, duration?: Tone.Time): Tone.Simpler;
     }
 
     var Scale: {
