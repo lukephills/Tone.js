@@ -3,20 +3,20 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 	"use strict";
 
 	/**
-	 *  @class  Buffer loading and storage. Tone.Buffer is used internally by all 
+	 *  @class  Buffer loading and storage. Tone.Buffer is used internally by all
 	 *          classes that make requests for audio files such as Tone.Player,
 	 *          Tone.Sampler and Tone.Convolver.
 	 *          <br><br>
-	 *          Aside from load callbacks from individual buffers, Tone.Buffer 
-	 *  		provides static methods which keep track of the loading progress 
+	 *          Aside from load callbacks from individual buffers, Tone.Buffer
+	 *  		provides static methods which keep track of the loading progress
 	 *  		of all of the buffers. These methods are Tone.Buffer.onload, Tone.Buffer.onprogress,
-	 *  		and Tone.Buffer.onerror. 
+	 *  		and Tone.Buffer.onerror.
 	 *
-	 *  @constructor 
+	 *  @constructor
 	 *  @extends {Tone}
-	 *  @param {AudioBuffer|string} url The url to load, or the audio buffer to set. 
-	 *  @param {function=} onload A callback which is invoked after the buffer is loaded. 
-	 *                            It's recommended to use Tone.Buffer.onload instead 
+	 *  @param {AudioBuffer|string} url The url to load, or the audio buffer to set.
+	 *  @param {function=} onload A callback which is invoked after the buffer is loaded.
+	 *                            It's recommended to use Tone.Buffer.onload instead
 	 *                            since it will give you a callback when ALL buffers are loaded.
 	 *  @example
 	 * var buffer = new Tone.Buffer("path/to/sound.mp3", function(){
@@ -51,14 +51,14 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 		this.url = undefined;
 
 		/**
-		 *  Indicates if the buffer is loaded or not. 
+		 *  Indicates if the buffer is loaded or not.
 		 *  @type {boolean}
 		 *  @readOnly
 		 */
 		this.loaded = false;
 
 		/**
-		 *  The callback to invoke when everything is loaded. 
+		 *  The callback to invoke when everything is loaded.
 		 *  @type {function}
 		 */
 		this.onload = options.onload.bind(this, this);
@@ -108,7 +108,7 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 	};
 
 	/**
-	 *  Load url into the buffer. 
+	 *  Load url into the buffer.
 	 *  @param {String} url The url to load
 	 *  @param {Function=} callback The callback to invoke on load.
 	 *                              don't need to set if `onload` is
@@ -135,7 +135,7 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 	};
 
 	/**
-	 * The duration of the buffer. 
+	 * The duration of the buffer.
 	 * @memberOf Tone.Buffer#
 	 * @type {number}
 	 * @name duration
@@ -156,11 +156,12 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 	 *  @private
 	 *  @return {Tone.Buffer} this
 	 */
-	Tone.Buffer.prototype._reverse = function(){
-		if (this.loaded){
+	Tone.Buffer.prototype._reverse = function(rev){
+		if (this.loaded && this._buffer !== null && (rev !== this._reversed)){
 			for (var i = 0; i < this._buffer.numberOfChannels; i++){
 				Array.prototype.reverse.call(this._buffer.getChannelData(i));
 			}
+			this._reversed = rev;
 		}
 		return this;
 	};
@@ -176,10 +177,7 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 			return this._reversed;
 		},
 		set : function(rev){
-			if (this._reversed !== rev) {
-				this._reversed = rev;
-				this._reverse();
-			}
+			this._reverse(rev);
 		},
 	});
 
@@ -324,7 +322,7 @@ define(["Tone/core/Tone", "Tone/core/Emitter"], function(Tone){
 	 *  @param {string} url The url of the buffer to load.
 	 *                      filetype support depends on the
 	 *                      browser.
-	 *  @param {function} callback The function to invoke when the url is loaded. 
+	 *  @param {function} callback The function to invoke when the url is loaded.
 	 *  @returns {XMLHttpRequest} returns the XHR
 	 */
 	Tone.Buffer.load = function(url, callback){
