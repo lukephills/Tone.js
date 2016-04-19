@@ -149,10 +149,11 @@ define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 		this._source = this.context.createBufferSource();
 		this._source.buffer = this._buffer;
 		this._source.loop = true;
-		//todo if SAFARI
-		//this._source.playbackRate.value = this._playbackRate;
-		//else
-		this.playbackRate.connect(this._source.playbackRate);
+		if(Tone.isSafari){
+			this._source.playbackRate.value = this._playbackRate;
+		} else {
+			this.playbackRate.connect(this._source.playbackRate);
+		}
 		this._source.connect(this.output);
 		this._source.start(this.toSeconds(time));
 	};
