@@ -44,6 +44,8 @@ define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 		 */
 		this._buffer = null;
 
+		this._state === 'stopped';
+
 		/**
 		 *  The playback rate of the noise. Affects
 		 *  the "frequency" of the noise.
@@ -108,7 +110,7 @@ define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 						throw new Error("invalid noise type: "+type)
 				}
 				//if it's playing, stop and restart it
-				if (this.state === Tone.State.Started){
+				if (this._state === 'started'){
 					var now = this.now() + this.blockTime;
 					//remove the listener
 					this._stop(now);
@@ -156,6 +158,7 @@ define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 		}
 		this._source.connect(this.output);
 		this._source.start(this.toSeconds(time));
+		this._state = 'started';
 	};
 
 	/**
@@ -168,6 +171,7 @@ define(["Tone/core/Tone", "Tone/source/SimpleSource"], function(Tone){
 		if (this._source){
 			this._source.stop(this.toSeconds(time));
 		}
+		this._state === 'stopped';
 	};
 
 	/**
