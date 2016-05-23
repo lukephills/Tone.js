@@ -98,6 +98,17 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
         }
 
         /**
+         *  The detune control signal. Only works in browsers that support it
+         *  @type {Cents}
+         *  @signal
+         */
+        var s = this.context.createBufferSource();
+        if (s.detune) {
+            this.detune = new Tone.Signal(options.detune, Tone.Type.Cents);
+            this._readOnly("detune");
+        }
+
+        /**
          *  Enabling retrigger will allow a player to be restarted
          *  before the the previous 'start' is done playing. Otherwise,
          *  successive calls to Tone.SimplePlayer.start will only start
@@ -124,6 +135,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
         "loopEnd" : 0,
         "retrigger" : false,
         "reverse" : false,
+        "detune" : 0,
     };
 
     /**
@@ -201,6 +213,10 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
                 this._source.playbackRate.value = this._playbackRate;
             } else {
                 this.playbackRate.connect(this._source.playbackRate);
+            }
+            // Only connect detune signal in browsers that support it
+            if (this._source.detune) {
+                this.detune.connect(this._source.detune);
             }
             this._source.connect(this.output);
             //start it
@@ -365,6 +381,11 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             this._writable("playbackRate");
             this.playbackRate.dispose();
             this.playbackRate = null;
+        }
+        if (this.detune){
+            this._writable("detune");
+            this.detune.dispose();
+            this.detune = null;
         }
         return this;
     };
