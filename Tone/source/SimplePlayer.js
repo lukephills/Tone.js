@@ -236,7 +236,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             
             // connect
             this._sourceGain.connect(this.output);
-            this._source.connect(this.sourceGain);
+            this._source.connect(this._sourceGain);
             
             
             //start it
