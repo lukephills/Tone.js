@@ -36,6 +36,8 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
          */
         this._source = null;
         this._lastSource = null;
+        this._sourceGain = null;
+        this._lastSourceGain = null;
 
         /**
          *  If the file should play as soon
@@ -197,13 +199,19 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             
             //if an existing voice needs cutting short
             if (this._lastSource) {
-            	this._lastSource.stop();
+            	this._lastSourceGain.gain.setValueAtTime(1, this.context.currentTime);
+            	this._lastSourceGain.gain.linearRampToValueAtTime(0, this.context.currentTime+0.001);
+            	this._lastSource.stop(this.context.currentTime+0.001);
             }
 
             //make the source
             this._source = this.context.createBufferSource();
-            this._source.buffer = this._buffer.get();
             this._lastSource = this._source;
+            this._sourceGain = this.context.createGain();
+            this._lastSourceGain = this._sourceGain;
+            this._source.buffer = this._buffer.get();
+            
+            
             //set the looping properties
             if (this._loop){
                 this._source.loop = this._loop;
@@ -225,7 +233,12 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             if (this._source.detune) {
                 this.detune.connect(this._source.detune);
             }
-            this._source.connect(this.output);
+            
+            // connect
+            this._sourceGain.connect(this.output);
+            this._source.connect(this.sourceGain);
+            
+            
             //start it
             if (this._loop){
                 this._source.start(now, offset);
