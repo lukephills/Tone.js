@@ -35,6 +35,7 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
          *  @type {AudioBufferSourceNode}
          */
         this._source = null;
+        this._lastSource = null;
 
         /**
          *  If the file should play as soon
@@ -193,10 +194,17 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             }
 
             duration = this.defaultArg(duration, this._buffer.duration - offset);
+            
+            //if an existing voice needs cutting short
+            if (this._lastSource) {
+            	this._lastSource.cancelScheduledValues();
+            	this._lastSource.stop();
+            }
 
             //make the source
             this._source = this.context.createBufferSource();
             this._source.buffer = this._buffer.get();
+            this._lastSource = this._source;
             //set the looping properties
             if (this._loop){
                 this._source.loop = this._loop;
