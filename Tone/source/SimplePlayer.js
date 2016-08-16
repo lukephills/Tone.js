@@ -197,7 +197,6 @@ define(["Tone/core/Tone", "Tone/core/Buffer", "Tone/source/SimpleSource"], funct
             
             //if an existing voice needs cutting short
             if (this._lastSource) {
-            	this._lastSource.cancelScheduledValues();
             	this._lastSource.stop();
             }
 
